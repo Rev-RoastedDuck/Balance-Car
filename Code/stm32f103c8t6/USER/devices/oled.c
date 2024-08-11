@@ -119,7 +119,8 @@ void oled_clear(void)
   * @retval 无
   */
 void oled_show_char(uint8_t Line, uint8_t Column, char Char)
-{      	
+{  
+	#if USE_OLED_F8x16
 	uint8_t i;
 	OLED_SetCursor((Line - 1) * 2, (Column - 1) * 8);		//设置光标位置在上半部分
 	for (i = 0; i < 8; i++)
@@ -131,6 +132,16 @@ void oled_show_char(uint8_t Line, uint8_t Column, char Char)
 	{
 		OLED_WriteData(OLED_F8x16[Char - ' '][i + 8]);		//显示下半部分内容
 	}
+	#else
+	uint8_t i;
+	OLED_SetCursor((Line - 1) + 1, (Column - 1) * 6 +2);
+	for (i = 0; i < 6; i++)
+	{
+		OLED_WriteData(OLED_F6x8[Char - ' '][i]);
+	}
+	#endif
+	
+	
 }
 
 /**
@@ -346,25 +357,29 @@ RRD_DEVICE_OLED OLED_DRIVER = {
 #include "mpu6050_dmp.h"
 void oled_test_start(void){
 	debug_uart_init();
-	OLED_DRIVER.oled_init();
 	
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_GPIOB|RCC_APB2Periph_AFIO,ENABLE);
-	MPU6050_DEVICE.mpu6050_init();
-	if (!MPU6050_DEVICE.mpu6050_get_id()){
-    printf("\r\n没有检测到MPU6050传感器！\r\n");
-		while(1);
-	}
-	
-	while(mpu_dmp_init()){
-		delay_ms_soft(20);
-	}
+	OLED_DRIVER.oled_init();
+//	MPU6050_DEVICE.mpu6050_init();
+//	if (!MPU6050_DEVICE.mpu6050_get_id()){
+//    printf("\r\n没有检测到MPU6050传感器！\r\n");
+//		while(1);
+//	}
+//	
+//	while(mpu_dmp_init()){
+//		delay_ms_soft(20);
+//	}
 	
 	float pitch,roll,yaw;
+	
+	pitch = 0.3;
+	roll = 0.01;
+	yaw = 0.05;
 	while (1)
 	{		
-		delay_ms_soft(10);
-		mpu_dmp_get_data(&pitch,&roll,&yaw);
-		
+		delay_ms_soft(100);
+//		mpu_dmp_get_data(&pitch,&roll,&yaw);
+//		printf("欧拉角： %8.2f%8.2f%8.2f    ",pitch,roll,yaw);
 		OLED_DRIVER.oled_show_float(2, 1, pitch, 2);
 		OLED_DRIVER.oled_show_float(3, 1, roll, 2);
 		OLED_DRIVER.oled_show_float(4, 1, yaw, 2);

@@ -81,7 +81,7 @@ static inline void i2c_delay(void)
 {
 	// 10
 	uint8_t i;
-	for (i = 0; i < 10; i++);
+	for (i = 0; i < 8; i++);
 }
 
 /**

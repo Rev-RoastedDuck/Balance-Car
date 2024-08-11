@@ -7,9 +7,9 @@
  
 // <h>STDOUT USART Interface
  
-//   <o>Connect to hardware via Driver_USART# <0-255>
+//   <o>Connect to hardware via Driver_USART# <0-3>
 //   <i>Select driver control block for USART interface
-#define USART_DRV_NUM           1
+#define USART_DRV_NUM           2
  
 //   <o>Baudrate
 #define USART_BAUDRATE          115200

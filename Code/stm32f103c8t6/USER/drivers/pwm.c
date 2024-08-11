@@ -141,6 +141,25 @@ static uint16_t get_tim_period(const TIM_TypeDef* tim_x){
 	return tim_x->ARR;
 }
 
+/******************************************************************************/
+/*----------------------------------接口初始化--------------------------------*/
+/******************************************************************************/
+//RRD_DRIVER_PWM* pwm_driver_new(void){
+//	RRD_DRIVER_PWM* self;
+//	self = malloc(sizeof(RRD_DRIVER_PWM));
+//	if (self == NULL) {
+//		debug_uart_printf_2(0,"Memory allocation failed");
+//		return self;
+//	}
+//	
+//	self->init = init;
+//	self->set_compare = set_compare;
+//	self->get_compare = get_compare;
+//	self->get_tim_period = get_tim_period;
+//	
+//	return self;
+//}
+
 
 /******************************************************************************/
 /*-----------------------------------外部接口---------------------------------*/

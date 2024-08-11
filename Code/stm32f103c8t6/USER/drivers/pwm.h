@@ -13,6 +13,7 @@
 /******************************************************************************/
 #include "stm32f10x.h"
 #include "debug_uart.h"
+#include <stdlib.h>
 
 /******************************************************************************/
 /*------------------------------------枚举------------------------------------*/
@@ -32,7 +33,7 @@ typedef struct _RRD_DRIVER_PWM {
 	void 			(*set_compare) 		(TIM_TypeDef* tim_x,const TIM_CHANNEL tim_channel, const uint16_t compare);
 	uint16_t 	(*get_compare)		(const TIM_TypeDef* tim_x,const TIM_CHANNEL tim_channel);
 	uint16_t 	(*get_tim_period)	(const TIM_TypeDef* tim_x);
-} const RRD_DRIVER_PWM;
+} RRD_DRIVER_PWM;
 
 /******************************************************************************/
 /*-----------------------------------DEBUG接口--------------------------------*/
@@ -48,7 +49,7 @@ typedef struct _RRD_DRIVER_PWM {
 /*-----------------------------------外部接口---------------------------------*/
 /******************************************************************************/
 extern RRD_DRIVER_PWM PWM_DRIVER;
-
+//RRD_DRIVER_PWM* pwm_driver_new(void);
 
 
 #endif

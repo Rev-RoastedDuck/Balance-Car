@@ -172,7 +172,7 @@ static uint8_t mpu6050_get_id(void){
 	uint8_t re = 0;
 	mpu6050_read_data(MPU6050_RA_WHO_AM_I,&re,1);
 	if(re != 0x68){
-		debug_uart_printf_1("MPU6050 dectected error!\r\n");
+		debug_uart_printf_1("MPU6050 dectected error! %d \r\n",re);
 		return 0;
 	}
 	debug_uart_printf_1("MPU6050 ID = %d\r\n",re);
@@ -302,7 +302,7 @@ void mpu6050_test(void){
 	
 	MPU6050_DEVICE.mpu6050_init();
 	
-	
+	printf("init now!!! \r\n");
 	if (!MPU6050_DEVICE.mpu6050_get_id()){
     printf("\r\n没有检测到MPU6050传感器！\r\n");
 		while(1);
@@ -328,7 +328,7 @@ void mpu6050_test(void){
 	
 		printf("\r\n加速度： %8.2f%8.2f%8.2f    ",Accel_F[0],Accel_F[1],Accel_F[2]);
 		printf("陀螺仪： %8.2f%8.2f%8.2f    ",    Gyro_F[0], Gyro_F[1], Gyro_F[2]);
-		
+
 		delay_ms_soft(10);
 	}
 }

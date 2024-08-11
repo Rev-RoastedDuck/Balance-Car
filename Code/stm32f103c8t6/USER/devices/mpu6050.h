@@ -60,19 +60,19 @@
 /*------------------------------------½á¹¹Ìå----------------------------------*/
 /******************************************************************************/
 typedef struct _RRD_DEVICE_MPU6050 {
-	void 		(*mpu6050_init)							(void);
+	void 				(*mpu6050_init)							(void);
 	
-	uint8_t 		(*mpu6050_read_data)		(const uint8_t reg_add,uint8_t* data_list,const uint8_t num);
-	uint8_t 		(*mpu6050_write_data)		(const uint8_t reg_add,uint8_t* data_list,const uint8_t num);
+	uint8_t 		(*mpu6050_read_data)				(const uint8_t reg_add,uint8_t* data_list,const uint8_t num);
+	uint8_t 		(*mpu6050_write_data)				(const uint8_t reg_add,uint8_t* data_list,const uint8_t num);
 
-	uint8_t (*mpu6050_get_id)						(void);
-	void 		(*mpu6050_get_acc)					(int16_t *acc_list);
-	void 		(*mpu6050_get_temp)					(int16_t *temp_data);
-	void 		(*mpu6050_get_gyro)					(int16_t *gyro_list);
+	uint8_t 		(*mpu6050_get_id)						(void);
+	void 				(*mpu6050_get_acc)					(int16_t *acc_list);
+	void 				(*mpu6050_get_temp)					(int16_t *temp_data);
+	void 				(*mpu6050_get_gyro)					(int16_t *gyro_list);
 
-	float 	(*mpu6050_acc_transition)		(int16_t acc_value);
-	float 	(*mpu6050_gyro_transition)	(int16_t gyro_value);
-	void 		(*mpu6050_temp_transition)	(float *temperature);
+	float 			(*mpu6050_acc_transition)		(int16_t acc_value);
+	float 			(*mpu6050_gyro_transition)	(int16_t gyro_value);
+	void 				(*mpu6050_temp_transition)	(float *temperature);
 	
 }RRD_DEVICE_MPU6050;
 
