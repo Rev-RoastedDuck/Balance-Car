@@ -13,8 +13,9 @@
 /******************************************************************************/
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include "Driver_USART.h"
-
+#include "stm32f10x.h" 
 
 /******************************************************************************/
 /*---------------------------------内部宏定义---------------------------------*/
@@ -47,6 +48,9 @@ void debug_uart_print_handle(const uint8_t pass ,const char *fmt, const char *fi
 /******************************************************************************/
 /**
  * @brief 发送debug信息
+ * @note	不可以在中断内使用
+ * @note	不可以在中断内使用
+ * @note	不可以在中断内使用
  */
 #define debug_uart_printf_1(fmt, ...) 				DEBUG_PRINT_1(fmt, ##__VA_ARGS__)
 #define debug_uart_printf_2(pass, fmt, ...) 	DEBUG_PRINT_2(pass, fmt, ##__VA_ARGS__)
@@ -57,5 +61,14 @@ void debug_uart_print_handle(const uint8_t pass ,const char *fmt, const char *fi
  */
 int8_t debug_uart_init(void);
 
-
+/**
+ * @brief  			发送格式化字符串
+ * @param[in] 	fmt 格式化字符串
+ * @return			None
+ * @note				variable argument list string printf return num
+ * @note				可以在中断内使用
+ * @note				可以在中断内使用
+ * @note				可以在中断内使用
+ */
+void debug_uart_send(const char *fmt, ...);
 #endif

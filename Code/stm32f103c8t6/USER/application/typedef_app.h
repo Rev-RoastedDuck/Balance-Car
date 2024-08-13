@@ -65,7 +65,6 @@ typedef struct _BalanceCarInfo{
 		HandleInfo			handle_data;
 		EncoderDataInfo encoder_date;
 		Mpu6050DataInfo mpu6050_data;
-	
 }BalanceCarInfo;
 
 

@@ -5,7 +5,7 @@
  *      Author: Rev_RoastDuck
  */
 
-
+#if 0
 #ifndef DEVICES_ENCODERS_H_
 #define DEVICES_ENCODERS_H_
 
@@ -37,4 +37,4 @@ typedef struct _RRD_DEVICE_ENCODERS {
 /******************************************************************************/
 extern RRD_DEVICE_ENCODERS ENCODERS_DEVICE;
 #endif
-
+#endif

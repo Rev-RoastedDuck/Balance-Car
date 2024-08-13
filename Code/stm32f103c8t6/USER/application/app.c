@@ -144,7 +144,13 @@ void encoder_get_filter_data(BalanceCarInfo *info,
 		data = (-1) * right_encoder_driver->encoder_get_count(right_encoder_driver);
 		info->encoder_date.encoder_right = (int16_t)first_order_filter(&info->encoder_date.encoder_right_filter,(float)data);	
 }
- 
+
+void encoders_get_counts(BalanceCarInfo *info,
+													RRD_DRIVER_ENCODER *left_encoder_driver,
+													RRD_DRIVER_ENCODER *right_encoder_driver){
+	info->encoder_date.encoder_left = (int16_t)left_encoder_driver->encoder_get_count(left_encoder_driver);
+	info->encoder_date.encoder_right = (-1) * (int16_t)right_encoder_driver->encoder_get_count(right_encoder_driver);
+}
 /** \} */
 
 
@@ -191,12 +197,50 @@ void oled_show_data(BalanceCarInfo *info){
  
 /** \} */
 
+
+/** \addtogroup flash
+ *  \{ */
+#define ADDR   ADDR_FLASH_SECTOR(120)
+
+void flash_save_data(BalanceCarInfo *info){
+	FLASH_DRIVER.flash_erase_page(ADDR);
+	uint32_t add = FLASH_DRIVER.flash_write_vector_data(ADDR,&info->pid_data,sizeof(info->pid_data));
+	printf("add %x \r\n",add);
+}
+
+void flash_read_data(BalanceCarInfo *info){
+	PidDataInfo pid_data;
+	FLASH_DRIVER.flash_read_vector_data(ADDR,&pid_data,sizeof(PidDataInfo));
+	info->pid_data = pid_data;
+}
+ 
+/** \} */
+
+
+/** \addtogroup systick
+ *  \{ */
+void task_callback_function(void){
+//		debug_uart_send("debug message. \r\n");
+		app_update_params();
+}
+
+inline void systick_start_task(void){
+	SYSTICK_DRIVER.init(10,TRUE,0);
+	SYSTICK_DRIVER.set_interrupt_function(task_callback_function);
+}
+ 
+/** \} */
+
 /** \addtogroup all
  *  \{ */
+inline void app_start_task(void){
+	systick_start_task();
+}
+
 void app_device_init(void){
 	// debug 初始化
 	debug_uart_init();
-	
+
 	debug_uart_printf_1("init now!\r\n");
 	
 	// 开启时钟线
@@ -227,16 +271,41 @@ void app_device_init(void){
 	debug_uart_printf_1("蓝牙初始化完成\r\n");
 	
 	// 编码器
-	ENCODERS_DEVICE.init();
+	g_ENCODER_DEVICE_LEFT = encoder_driver_new();
+	g_ENCODER_DEVICE_LEFT->encoder_config(g_ENCODER_DEVICE_LEFT,GPIOA,GPIO_Pin_6,GPIOA,GPIO_Pin_7,TIM3);
+	
+	g_ENCODER_DEVICE_RIGHT = encoder_driver_new();
+	g_ENCODER_DEVICE_RIGHT->encoder_config(g_ENCODER_DEVICE_RIGHT,GPIOA,GPIO_Pin_0,GPIOA,GPIO_Pin_1,TIM2);
+	debug_uart_printf_1("编码器初始化完成\r\n");
+	
+	// 电机
+	g_MOTOR_DEVICE_LEFT = motor_driver_new();
+	g_MOTOR_DEVICE_LEFT->set_compare_range(g_MOTOR_DEVICE_LEFT,0,2000);
+	g_MOTOR_DEVICE_LEFT->init(g_MOTOR_DEVICE_LEFT,GPIOB,GPIO_Pin_6,TIM4,CH1,4000 - 1, 72 - 1, TIM_CKD_DIV1);
+	
+	g_MOTOR_DEVICE_RIGHT = motor_driver_new();
+	g_MOTOR_DEVICE_RIGHT->set_compare_range(g_MOTOR_DEVICE_RIGHT,0,2000);
+	g_MOTOR_DEVICE_RIGHT->init(g_MOTOR_DEVICE_RIGHT,GPIOB,GPIO_Pin_7,TIM4,CH2,4000 - 1, 72 - 1, TIM_CKD_DIV1);
+	debug_uart_printf_1("电机初始化完成\r\n");
+	
+	// 电机驱动
+	g_TB6612FNG_DEVICE_LEFT = tb6612fng_device_new();
+	g_TB6612FNG_DEVICE_LEFT->init(g_TB6612FNG_DEVICE_LEFT,GPIOA,GPIO_Pin_12,GPIOA,GPIO_Pin_15);
+	g_TB6612FNG_DEVICE_LEFT->stop(g_TB6612FNG_DEVICE_LEFT);
+	
+	g_TB6612FNG_DEVICE_RIGHT = tb6612fng_device_new();
+	g_TB6612FNG_DEVICE_RIGHT->init(g_TB6612FNG_DEVICE_RIGHT,GPIOB,GPIO_Pin_3,GPIOB,GPIO_Pin_4);
+	g_TB6612FNG_DEVICE_RIGHT->stop(g_TB6612FNG_DEVICE_RIGHT);
+	debug_uart_printf_1("电机驱动初始化完成\r\n");
 }
 
 void app_params_init(void){
 	// balance_pid
-	g_BALANCE_CAR_INFO.pid_data.balance_pid.Kp = 0;
-	g_BALANCE_CAR_INFO.pid_data.balance_pid.Td = 0;
-	g_BALANCE_CAR_INFO.pid_data.balance_pid.Tsam = 0;
+	g_BALANCE_CAR_INFO.pid_data.balance_pid.Kp = 0.99;
+	g_BALANCE_CAR_INFO.pid_data.balance_pid.Td = 3.14;
+	g_BALANCE_CAR_INFO.pid_data.balance_pid.Tsam = 10;
 	
-	g_BALANCE_CAR_INFO.pid_data.balance_pid.Ti = 0;
+	g_BALANCE_CAR_INFO.pid_data.balance_pid.Ti = 2;
 	g_BALANCE_CAR_INFO.pid_data.balance_pid.SEk = 0;
 	g_BALANCE_CAR_INFO.pid_data.balance_pid.En_0 = 0;
 	g_BALANCE_CAR_INFO.pid_data.balance_pid.En_1 = 0;
@@ -246,11 +315,11 @@ void app_params_init(void){
 	g_BALANCE_CAR_INFO.pid_data.balance_pid.desired_value = 0;
 	
 	// speed_pid
-	g_BALANCE_CAR_INFO.pid_data.speed_pid.Kp = 0;
-	g_BALANCE_CAR_INFO.pid_data.speed_pid.Ti = 0;
-	g_BALANCE_CAR_INFO.pid_data.speed_pid.Tsam = 0;
+	g_BALANCE_CAR_INFO.pid_data.speed_pid.Kp = 0.91;
+	g_BALANCE_CAR_INFO.pid_data.speed_pid.Ti = 90.2;
+	g_BALANCE_CAR_INFO.pid_data.speed_pid.Tsam = 10;
 	
-	g_BALANCE_CAR_INFO.pid_data.speed_pid.Td = 0;
+	g_BALANCE_CAR_INFO.pid_data.speed_pid.Td = 2.10;
 	g_BALANCE_CAR_INFO.pid_data.speed_pid.SEk = 0;
 	g_BALANCE_CAR_INFO.pid_data.speed_pid.En_0 = 0;
 	g_BALANCE_CAR_INFO.pid_data.speed_pid.En_1 = 0;
@@ -260,11 +329,11 @@ void app_params_init(void){
 	g_BALANCE_CAR_INFO.pid_data.speed_pid.desired_value = 0;
 	
 	// turn_pid
-	g_BALANCE_CAR_INFO.pid_data.turn_pid.Kp = 0;
-	g_BALANCE_CAR_INFO.pid_data.turn_pid.Td = 0;
-	g_BALANCE_CAR_INFO.pid_data.turn_pid.Tsam = 0;
+	g_BALANCE_CAR_INFO.pid_data.turn_pid.Kp = 1.4;
+	g_BALANCE_CAR_INFO.pid_data.turn_pid.Td = 1.6;
+	g_BALANCE_CAR_INFO.pid_data.turn_pid.Tsam = 10;
 	
-	g_BALANCE_CAR_INFO.pid_data.turn_pid.Ti = 0;
+	g_BALANCE_CAR_INFO.pid_data.turn_pid.Ti = 3.1;
 	g_BALANCE_CAR_INFO.pid_data.turn_pid.SEk = 0;
 	g_BALANCE_CAR_INFO.pid_data.turn_pid.En_0 = 0;
 	g_BALANCE_CAR_INFO.pid_data.turn_pid.En_1 = 0;
@@ -291,6 +360,7 @@ void app_params_init(void){
 	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_euler_angles.pitch = 0.0f;
 	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_euler_angles.roll = 0.0f;
 	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_euler_angles.yaw = 0.0f;
+
 }
 
 void app_update_params(void){
@@ -314,11 +384,12 @@ void app_update_params(void){
 	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_gyro_data.z = MPU6050_DEVICE.mpu6050_gyro_transition(Gyro[2]);
 
 	// encoders
-//	ENCODERS_DEVICE.get_counts(&g_BALANCE_CAR_INFO.encoder_date.encoder_left,
-//															&g_BALANCE_CAR_INFO.encoder_date.encoder_right);
-	encoder_get_filter_data(&g_BALANCE_CAR_INFO,
-													ENCODERS_DEVICE.encoder_driver_left,
-													ENCODERS_DEVICE.encoder_driver_right);
+	encoders_get_counts(&g_BALANCE_CAR_INFO,
+													g_ENCODER_DEVICE_LEFT,
+													g_ENCODER_DEVICE_RIGHT);
+	// encoder_get_filter_data(&g_BALANCE_CAR_INFO,
+	//  												g_ENCODER_DEVICE_LEFT,
+	//  												g_ENCODER_DEVICE_RIGHT);
 	
 }
 /** \} */

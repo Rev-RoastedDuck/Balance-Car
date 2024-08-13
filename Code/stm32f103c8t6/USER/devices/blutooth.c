@@ -37,7 +37,32 @@ extern ARM_DRIVER_USART  USART_Driver_(USART_DRV_NUM);
 #define FIFO_SIZE																64
 static  uint8_t g_FIFO_GET_DATA[FIFO_SIZE];
 
-		
+
+
+/******************************************************************************/
+/*---------------------------------静态函数-----------------------------------*/
+/******************************************************************************/
+/**
+ * @brief  			发送一位数据
+ * @param				byte  需要发送的字节 
+ */
+static inline void bluetooth_send_byte(uint8_t byte){
+	USART_SendData(USART2,byte);
+	while (USART_GetFlagStatus(USART2, USART_FLAG_TXE) == RESET) {
+	}
+}
+
+/**
+ * @brief  			发送字符串
+ * @param				byte  需要发送的字节 
+ */
+static inline void bluetooth_send_string(uint8_t *str){
+	while(*str != '\0'){
+		bluetooth_send_byte(*str++);
+	}
+}
+
+
 /******************************************************************************/
 /*-----------------------------------接口实现---------------------------------*/
 /******************************************************************************/
@@ -87,7 +112,7 @@ void bluetooth_callback(uint32_t event){
  * @brief  			Initialize stdout
  * @return          0 on success, or -1 on error.
  */
-int8_t bluetooth_init(void) {
+static int8_t bluetooth_init(void) {
   int32_t status;
  
   status = ptrUSART->Initialize(bluetooth_callback);	// 设置回调函数
@@ -121,8 +146,7 @@ int8_t bluetooth_init(void) {
  * @return		None
  * @note			variable argument list string printf return num
  */
-void blutooth_send(const char *fmt,...) {
-	
+static void blutooth_send(const char *fmt,...) {
 	// 1.计算所需内存
 	va_list args;
 	va_start(args, fmt);
@@ -142,7 +166,8 @@ void blutooth_send(const char *fmt,...) {
 	va_end(args);
 	
 	// 4.发送
-	ptrUSART->Send(buffer, len);
+	// ptrUSART->Send(buffer, len);
+	bluetooth_send_string((uint8_t*)buffer);
 	
 	// 5.释放
 	free(buffer);

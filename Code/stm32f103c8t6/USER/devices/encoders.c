@@ -1,3 +1,4 @@
+#if 0
 #include "encoders.h"
 
 
@@ -24,3 +25,4 @@ RRD_DEVICE_ENCODERS ENCODERS_DEVICE = {
 	.init = encoders_init,
 	.get_counts = encoders_get_counts
 };
+#endif

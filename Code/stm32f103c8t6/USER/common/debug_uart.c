@@ -17,7 +17,6 @@
 // </h>
 // <<< end of configuration section >>>
 
-
 #define _USART_Driver_(n)  Driver_USART##n
 #define  USART_Driver_(n) _USART_Driver_(n)
  
@@ -32,8 +31,30 @@ extern ARM_DRIVER_USART  USART_Driver_(USART_DRV_NUM);
         if ((status) != ARM_DRIVER_OK) return (-1); \
     } while (0)
 
+/******************************************************************************/
+/*---------------------------------静态函数-----------------------------------*/
+/******************************************************************************/
+/**
+ * @brief  			发送一位数据
+ * @param				byte  需要发送的字节 
+ */
+static void debug_uart_send_byte(uint8_t byte){
+	USART_SendData(USART2,byte);
+	// 等待发送完毕
+	while (USART_GetFlagStatus(USART2, USART_FLAG_TXE) == RESET) {
+	}
+}
 
-		
+/**
+ * @brief  			发送字符串
+ * @param				byte  需要发送的字节 
+ */
+static void debug_uart_send_string(uint8_t *str){
+	while(*str != '\0'){
+		debug_uart_send_byte(*str++);
+	}
+}
+
 /******************************************************************************/
 /*---------------------------------重构函数-----------------------------------*/
 /******************************************************************************/
@@ -44,7 +65,6 @@ extern ARM_DRIVER_USART  USART_Driver_(USART_DRV_NUM);
  */
 int stdout_putchar(int ch) {
   uint8_t buf[1];
- 
   buf[0] = ch;
   if (ptrUSART->Send(buf, 1) != ARM_DRIVER_OK) {
     return (-1);
@@ -59,7 +79,7 @@ int stdout_putchar(int ch) {
 /******************************************************************************/
 /**
  * @brief  			Initialize stdout
- * @return          0 on success, or -1 on error.
+ * @return      0 on success, or -1 on error.
  */
 int8_t debug_uart_init(void) {
   int32_t status;
@@ -87,7 +107,7 @@ int8_t debug_uart_init(void) {
 /**
  * @brief  			Initialize stdout
  * @param				uint8_t 
- * @return[in]  uint8_t        0 on success, or -1 on error.
+ * @return[in]  
  */
 void debug_uart_print_handle(const uint8_t pass ,const char *fmt, const char *file, int line, ...) {
 	if(pass){return;}
@@ -99,4 +119,44 @@ void debug_uart_print_handle(const uint8_t pass ,const char *fmt, const char *fi
 	vprintf(fmt, args);
 
 	va_end(args);
+}
+
+/**
+ * @brief  			发送格式化字符串
+ * @param[in] 	fmt 格式化字符串
+ * @return			None
+ * @note				variable argument list string printf return num
+ */
+void debug_uart_send(const char *fmt, ...) {
+	debug_uart_printf_2(1,"0\r\n");
+	// 1.计算所需内存
+	va_list args;
+	va_start(args, fmt);
+	debug_uart_printf_2(1,"01\r\n");
+	int len = vsnprintf(NULL, 0, fmt, args);
+	debug_uart_printf_2(1,"02\r\n");
+	va_end(args);
+	
+	debug_uart_printf_2(1,"1\r\n");
+	
+	// 2.分配内存
+	char *buffer = (char *)malloc(len + 1);
+	if (buffer == NULL) {
+			debug_uart_printf_2(0,"malloc fail!!!\r\n");
+			return;
+	}
+	
+	debug_uart_printf_2(1,"2\r\n");
+	
+	// 3.格式化输出
+	va_start(args, fmt);
+	vsnprintf(buffer,len + 1 , fmt, args);
+	va_end(args);
+	debug_uart_printf_2(1,"3\r\n");
+	
+	// 4.发送
+	debug_uart_send_string((uint8_t*)buffer);
+	debug_uart_printf_2(1,"4\r\n");
+	// 5.释放
+	free(buffer);
 }
