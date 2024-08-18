@@ -34,7 +34,7 @@ extern ARM_DRIVER_USART  USART_Driver_(USART_DRV_NUM);
 /******************************************************************************/
 /*----------------------------------全局变量----------------------------------*/
 /******************************************************************************/
-#define FIFO_SIZE																64
+#define FIFO_SIZE																128
 static  uint8_t g_FIFO_GET_DATA[FIFO_SIZE];
 
 
@@ -66,44 +66,125 @@ static inline void bluetooth_send_string(uint8_t *str){
 /******************************************************************************/
 /*-----------------------------------接口实现---------------------------------*/
 /******************************************************************************/
+
+/**
+ * @brief 		蓝牙发送格式化字符串的处理函数
+ * @param[in] fmt 格式化字符串
+ * @return		None
+ * @note			variable argument list string printf return num
+ */
+static void blutooth_send(const char *fmt,...) {
+	// 1.计算所需内存
+	va_list args;
+	va_start(args, fmt);
+	int len = vsnprintf(NULL, 0, fmt, args);
+	va_end(args);
+	
+	// 2.分配内存
+	char *buffer = (char *)malloc(len + 1);
+	if (buffer == NULL) {
+			debug_uart_printf_2(0,"malloc fail!!!\r\n");
+			return;
+	}
+	
+	// 3.格式化输出
+	va_start(args, fmt);
+	vsnprintf(buffer,len + 1 , fmt, args);
+	va_end(args);
+	
+	// 4.发送
+	// ptrUSART->Send(buffer, len);
+	bluetooth_send_string((uint8_t*)buffer);
+	
+	// 5.释放
+	free(buffer);
+}
+
 void bluetooth_callback(uint32_t event){
 	if(event & ARM_USART_EVENT_RX_TIMEOUT){
 		
-		// 回调
-		ptrUSART->Control(ARM_USART_ABORT_RECEIVE, 1);
-		uint32_t length = ptrUSART->GetRxCount();
-		ptrUSART->Send(g_FIFO_GET_DATA, length);
-		ptrUSART->Receive(g_FIFO_GET_DATA, FIFO_SIZE);		// 清空缓存区
+		uint32_t length = ptrUSART->GetRxCount();	// 获取缓存区长度
 		
-		// 事件处理
-		/*
+		/** \addtogroup 回传
+		 *  \{ */
+//		ptrUSART->Control(ARM_USART_ABORT_RECEIVE, 1);
+//		ptrUSART->Send(g_FIFO_GET_DATA, length);
+//		ptrUSART->Receive(g_FIFO_GET_DATA, FIFO_SIZE);
+		/** \} */
+		
+		/** \addtogroup 清空缓存区
+		 *  \{ */
+		if(length >= FIFO_SIZE - 1){
+			ptrUSART->Receive(g_FIFO_GET_DATA, FIFO_SIZE);
+		}
+		/** \} */
+		
+		
+		/** \addtogroup 数据包解析
+		 *  \{ */
+		/*-----------------------------多层校验数据包解析-----------------------------*/
 		// 1.找数据包尾
+//		if(length > 4
+//			&& g_FIFO_GET_DATA[length - 1] == 0xFB
+//			&& g_FIFO_GET_DATA[length - 2] == 0xFA){
+//				ptrUSART->Control(ARM_USART_ABORT_RECEIVE, 1);
+//				
+//				// 2.找数据包头
+//				uint8_t index = length;
+//				boolean find_pack_header = FALSE;
+//				while(--index >= 2){							
+//					if(g_FIFO_GET_DATA[index - 1] == 0xAB
+//						&& g_FIFO_GET_DATA[index - 2] == 0xAA){
+//						find_pack_header = TRUE;
+//						break;
+//					}
+//				}
+//				
+//				// 3.解析数据
+//				if(find_pack_header){
+//					for(uint8_t i = index;i < length;++i){
+//							parse_packet(g_FIFO_GET_DATA[i]);
+//					}
+//				}
+//				ptrUSART->Receive(g_FIFO_GET_DATA, FIFO_SIZE);		// 清空缓存区
+//		}
+			
+		/*-------------------------------简单数据包解析-------------------------------*/
+		// 1.找数据包尾
+		debug_uart_send_2(0,"length %d \r\n",length);
+		for(uint8_t index = 0;index < length;index++){
+			debug_uart_send_2(0,"%x ",g_FIFO_GET_DATA[index]);
+		}
+		debug_uart_send_2(0,"\r\n");
+		
+		
 		if(length > 4
-			&& g_FIFO_GET_DATA[length - 1] == 0xFB
-			&& g_FIFO_GET_DATA[length - 2] == 0xFA){
+			&& g_FIFO_GET_DATA[length - 1] == 0xEB
+			&& g_FIFO_GET_DATA[length - 2] == 0xEA){
 				ptrUSART->Control(ARM_USART_ABORT_RECEIVE, 1);
 				
 				// 2.找数据包头
-				uint8_t index = length;
+				uint8_t index = length - 1;
 				boolean find_pack_header = FALSE;
-				while(--index >= 2){							
-					if(g_FIFO_GET_DATA[index - 1] == 0xAB
-						&& g_FIFO_GET_DATA[index - 2] == 0xAA){
+				while(index >= 1){							
+					if(g_FIFO_GET_DATA[index] == 0xBB
+						&& g_FIFO_GET_DATA[index - 1] == 0xBA){
+						index -= 1;
 						find_pack_header = TRUE;
 						break;
 					}
+					index --;
 				}
 				
 				// 3.解析数据
 				if(find_pack_header){
-					ptrUSART->Send(g_FIFO_GET_DATA, length);
-//					for(uint8_t i = index;i < length;++i){
-//							parse_packet(g_FIFO_GET_DATA[i]);
-//					}
+					parse_packet_simple(g_FIFO_GET_DATA,index,length);
 				}
-				ptrUSART->Receive(g_FIFO_GET_DATA, FIFO_SIZE);		// 清空缓存区
+				ptrUSART->Receive(g_FIFO_GET_DATA, FIFO_SIZE);
 		}
-*/
+	/** \} */
+		
+		
 	}
 }
 		
@@ -139,39 +220,6 @@ static int8_t bluetooth_init(void) {
 	return (0);
 }
 
-
-/**
- * @brief 		蓝牙发送格式化字符串的处理函数
- * @param[in] fmt 格式化字符串
- * @return		None
- * @note			variable argument list string printf return num
- */
-static void blutooth_send(const char *fmt,...) {
-	// 1.计算所需内存
-	va_list args;
-	va_start(args, fmt);
-	int len = vsnprintf(NULL, 0, fmt, args);
-	va_end(args);
-	
-	// 2.分配内存
-	char *buffer = (char *)malloc(len + 1);
-	if (buffer == NULL) {
-			debug_uart_printf_2(0,"malloc fail!!!\r\n");
-			return;
-	}
-	
-	// 3.格式化输出
-	va_start(args, fmt);
-	vsnprintf(buffer,len + 1 , fmt, args);
-	va_end(args);
-	
-	// 4.发送
-	// ptrUSART->Send(buffer, len);
-	bluetooth_send_string((uint8_t*)buffer);
-	
-	// 5.释放
-	free(buffer);
-}
 
 /******************************************************************************/
 /*-------------------------------------接口-----------------------------------*/

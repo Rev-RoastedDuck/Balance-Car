@@ -28,7 +28,7 @@ static int8_t init(RRD_DEVICE_MOTOR* motor_driver,
 
 void set_compare_range(RRD_DEVICE_MOTOR* motor_driver,const uint16_t min,const uint16_t max){
 	if(min > max){
-		debug_uart_printf_2(0,"Set compare range failed");
+		debug_uart_printf_2(0,"Set compare range failed \r\n");
 		return;
 	}
 	motor_driver->compare_range[0] = min;
@@ -36,12 +36,19 @@ void set_compare_range(RRD_DEVICE_MOTOR* motor_driver,const uint16_t min,const u
 }
 
 
-static inline void set_compare(RRD_DEVICE_MOTOR* motor_driver,const uint16_t compare){
+static inline void set_compare(RRD_DEVICE_MOTOR* motor_driver,uint16_t compare){
 	if(compare < motor_driver->compare_range[0]
 		|| compare > motor_driver->compare_range[1]){
-			debug_uart_printf_2(0,"Set compare range failed");
-		return;
+			debug_uart_send_2(0,"Set compare failed\r\n");
 	}
+		
+	if(compare > motor_driver->compare_range[1]){
+		compare = motor_driver->compare_range[1];
+	}
+	else if(compare < motor_driver->compare_range[0]){
+		compare = motor_driver->compare_range[0];
+	}
+	
 	PWM_DRIVER.set_compare(motor_driver->tim_x,motor_driver->tim_channel,compare);
 }
 

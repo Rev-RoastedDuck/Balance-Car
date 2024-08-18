@@ -54,7 +54,6 @@ static void debug_uart_send_string(uint8_t *str){
 		debug_uart_send_byte(*str++);
 	}
 }
-
 /******************************************************************************/
 /*---------------------------------重构函数-----------------------------------*/
 /******************************************************************************/
@@ -126,18 +125,16 @@ void debug_uart_print_handle(const uint8_t pass ,const char *fmt, const char *fi
  * @param[in] 	fmt 格式化字符串
  * @return			None
  * @note				variable argument list string printf return num
+ * @note				可以在中断内使用
+ * @note				可以在中断内使用
+ * @note				可以在中断内使用
  */
 void debug_uart_send(const char *fmt, ...) {
-	debug_uart_printf_2(1,"0\r\n");
 	// 1.计算所需内存
 	va_list args;
 	va_start(args, fmt);
-	debug_uart_printf_2(1,"01\r\n");
 	int len = vsnprintf(NULL, 0, fmt, args);
-	debug_uart_printf_2(1,"02\r\n");
 	va_end(args);
-	
-	debug_uart_printf_2(1,"1\r\n");
 	
 	// 2.分配内存
 	char *buffer = (char *)malloc(len + 1);
@@ -146,17 +143,61 @@ void debug_uart_send(const char *fmt, ...) {
 			return;
 	}
 	
-	debug_uart_printf_2(1,"2\r\n");
+	// 3.格式化输出
+	va_start(args, fmt);
+	vsnprintf(buffer,len + 1 , fmt, args);
+	va_end(args);
+	
+	// 4.发送
+	debug_uart_send_string((uint8_t*)buffer);
+	// 5.释放
+	free(buffer);
+}
+
+/**
+ * @brief  			发送格式化字符串
+ * @param[in] 	pass 控制是否打印的标志
+ * @param[in] 	fmt 格式化字符串
+ * @return			None
+ * @note				variable argument list string printf return num
+ * @note				可以在中断内使用
+ * @note				可以在中断内使用
+ * @note				可以在中断内使用
+ */
+void debug_uart_send_2(const uint8_t pass,const char *fmt, ...) {
+	if(pass){return;}
+	
+	// 1.计算所需内存
+	va_list args;
+	va_start(args, fmt);
+	int len = vsnprintf(NULL, 0, fmt, args);
+	va_end(args);
+	
+	// 2.分配内存
+	char *buffer = (char *)malloc(len + 1);
+	if (buffer == NULL) {
+			debug_uart_printf_2(0,"malloc fail!!!\r\n");
+			return;
+	}
 	
 	// 3.格式化输出
 	va_start(args, fmt);
 	vsnprintf(buffer,len + 1 , fmt, args);
 	va_end(args);
-	debug_uart_printf_2(1,"3\r\n");
 	
 	// 4.发送
 	debug_uart_send_string((uint8_t*)buffer);
-	debug_uart_printf_2(1,"4\r\n");
 	// 5.释放
 	free(buffer);
+}
+
+/**
+ * @brief  			发送buff
+ * @param				vector  数据容器
+ * @param				len 		数据长度
+ */
+void debug_uart_send_buff(uint8_t *vector,uint16_t len){
+	for(uint16_t index = 0;index < len;index++){
+		debug_uart_send_byte(vector[index]);
+	}
 }

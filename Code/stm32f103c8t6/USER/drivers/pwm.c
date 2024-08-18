@@ -80,7 +80,8 @@ static int8_t init(	     GPIO_TypeDef* 	gpio_x,
 			TIM_OC4Init(tim_x,&TIM_OCInitStructure);
 			TIM_OC4PreloadConfig(tim_x,TIM_OCPreload_Enable);
 			break;			
-	}			
+	}
+		
 	return 0;				 
 }
 									 

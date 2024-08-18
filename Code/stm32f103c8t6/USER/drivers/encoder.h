@@ -19,6 +19,8 @@
 /*------------------------------------½á¹¹Ìå----------------------------------*/
 /******************************************************************************/
 typedef struct _RRD_DRIVER_ENCODER {
+	int32_t 			count;
+	
 	TIM_TypeDef*  tim_x;
 	
 	void 					(*encoder_driver_del)  (struct _RRD_DRIVER_ENCODER* self);

@@ -8,7 +8,7 @@
 #ifndef ALGORITHM_LOGIC_H_
 #define ALGORITHM_LOGIC_H_
 
-
+#include "debug_uart.h"
 #include "pid_rrd.h"
 
 /**

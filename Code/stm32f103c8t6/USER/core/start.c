@@ -3,31 +3,18 @@
 #include "app.h"
 #include "debug_uart.h"
 
+// TODO 电源开关 pwm信号去耦电容 动态flash 防反接 电机续流 软启动 电流限制 低电压检测 底层正电间隔
+// 减压优化
+
 int main(void){
 	app_device_init();
 	app_params_init();
 	
-	flash_read_data(&g_BALANCE_CAR_INFO);
-	
-	printf("%0.2f %0.2f %0.2f %0.2f \r\n",g_BALANCE_CAR_INFO.pid_data.balance_pid.Kp,
-																				g_BALANCE_CAR_INFO.pid_data.balance_pid.Td,
-																				g_BALANCE_CAR_INFO.pid_data.balance_pid.Ti,
-																				g_BALANCE_CAR_INFO.pid_data.balance_pid.Tsam);
-	
-	printf("%0.2f %0.2f %0.2f %0.2f \r\n",g_BALANCE_CAR_INFO.pid_data.speed_pid.Kp,
-																				g_BALANCE_CAR_INFO.pid_data.speed_pid.Td,
-																				g_BALANCE_CAR_INFO.pid_data.speed_pid.Ti,
-																				g_BALANCE_CAR_INFO.pid_data.speed_pid.Tsam);
-
-	printf("%0.2f %0.2f %0.2f %0.2f \r\n",g_BALANCE_CAR_INFO.pid_data.turn_pid.Kp,
-																				g_BALANCE_CAR_INFO.pid_data.turn_pid.Td,
-																				g_BALANCE_CAR_INFO.pid_data.turn_pid.Ti,
-																				g_BALANCE_CAR_INFO.pid_data.turn_pid.Tsam);
+	delay_ms_soft(100);
+	app_start_task();
 	
 	while(1){
-		delay_ms_soft(10);
-		app_update_params();
-		oled_show_data(&g_BALANCE_CAR_INFO);
+		app_run();
 	}
 	
 	

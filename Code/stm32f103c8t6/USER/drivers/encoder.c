@@ -71,10 +71,9 @@ static void encoder_init(			RRD_DRIVER_ENCODER* driver,
  * @return  		编码器的计数值
  */
 static int32_t encoder_get_count(RRD_DRIVER_ENCODER* driver){
-    int32_t count = 0;
-    count = TIM_GetCounter(driver->tim_x);
+    driver->count = TIM_GetCounter(driver->tim_x);
     TIM_SetCounter(driver->tim_x, 0);
-    return count;
+    return driver->count;
 }
 
 /**

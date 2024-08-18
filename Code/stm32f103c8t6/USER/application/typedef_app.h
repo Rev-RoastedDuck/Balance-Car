@@ -15,6 +15,7 @@
 #include "pid_rrd.h"
 #include "filter_rrd.h"
 #include "encoder.h"
+#include "typedef.h"
 
 /******************************************************************************/
 /*----------------------------------类型定义----------------------------------*/
@@ -50,21 +51,41 @@ typedef struct _EncoderDataInfo{
 		First_Order_Filter_Info encoder_right_filter;
 }EncoderDataInfo;
 
+typedef struct _PidOpenLoopDataInfo{
+		int16_t	motor_left_pwm_reload_value;	// 左电机预装载值，数值小于0 反转
+		int16_t	motor_right_pwm_reload_value;	// 右电机预装载值，数值小于0 反转
+}PidOpenLoopDataInfo;
+
 typedef struct _PidDataInfo{
 		PID_Loc_Info balance_pid;
 		PID_Loc_Info speed_pid;
 		PID_Loc_Info turn_pid;
 }PidDataInfo;
 
+typedef struct _PidControl{
+		boolean open_loop;
+}PidControl;
+
 typedef struct _HandleDataInfo{
 		uint8_t command;
 }HandleInfo;
 
+typedef struct _FunctionOption{
+		uint8_t need_dmp_reset;
+		uint8_t need_oled_show;
+		boolean need_oled_clear;
+}FunctionOption;
+
 typedef struct _BalanceCarInfo{
-		PidDataInfo			pid_data;
-		HandleInfo			handle_data;
-		EncoderDataInfo encoder_date;
-		Mpu6050DataInfo mpu6050_data;
+		PidDataInfo					pid_data;
+		PidOpenLoopDataInfo pid_open_loop_data;
+		PidControl 					pid_control;
+	
+		HandleInfo					handle_data;
+		EncoderDataInfo 		encoder_date;
+		Mpu6050DataInfo 		mpu6050_data;
+		FunctionOption			function_option;
+		
 }BalanceCarInfo;
 
 

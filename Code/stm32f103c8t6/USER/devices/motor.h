@@ -26,7 +26,7 @@ typedef struct _RRD_DEVICE_MOTOR {
 	
 	int8_t		(*init) 								(struct _RRD_DEVICE_MOTOR* motor_driver,GPIO_TypeDef* gpio_x, const uint16_t gpio_pin, TIM_TypeDef* tim_x,const TIM_CHANNEL tim_channel,const uint16_t	tim_period,const uint16_t	tim_prescaler,const uint16_t	tim_clock_div);
 	void 			(*set_compare_range) 		(struct _RRD_DEVICE_MOTOR* motor_driver,const uint16_t min,const uint16_t max);
-	void 			(*set_compare) 					(struct _RRD_DEVICE_MOTOR* motor_driver,const uint16_t compare);
+	void 			(*set_compare) 					(struct _RRD_DEVICE_MOTOR* motor_driver,uint16_t compare);
 	uint16_t 	(*get_compare)					(struct _RRD_DEVICE_MOTOR* motor_driver);
 	uint16_t 	(*get_tim_period)				(struct _RRD_DEVICE_MOTOR* motor_driver);
 

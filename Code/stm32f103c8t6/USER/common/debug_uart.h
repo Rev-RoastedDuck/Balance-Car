@@ -71,4 +71,24 @@ int8_t debug_uart_init(void);
  * @note				可以在中断内使用
  */
 void debug_uart_send(const char *fmt, ...);
+
+/**
+ * @brief  			发送格式化字符串
+ * @param[in] 	pass 控制是否打印的标志
+ * @param[in] 	fmt 格式化字符串
+ * @return			None
+ * @note				variable argument list string printf return num
+ * @note				可以在中断内使用
+ * @note				可以在中断内使用
+ * @note				可以在中断内使用
+ */
+void debug_uart_send_2(const uint8_t pass,const char *fmt, ...);
+
+/**
+ * @brief  			发送buff
+ * @param				vector  数据容器
+ * @param				len 		数据长度
+ */
+void debug_uart_send_buff(uint8_t *vector,uint16_t len);
+
 #endif

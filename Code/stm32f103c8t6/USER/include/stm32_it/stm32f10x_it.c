@@ -56,6 +56,31 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* Go to infinite loop when Hard Fault exception occurs */
+	
+	/** \addtogroup user
+	 *  \{ */
+	debug_uart_printf_1("program fail \r\n");
+	
+	// 打印堆栈信息
+	uint32_t* stack_pointer = (uint32_t*) __get_MSP(); // 使用 __get_PSP() 获取线程模式堆栈指针
+	debug_uart_printf_1("Hard Fault \n"
+											 "R0  = 0x%08X \n"
+											 "R1  = 0x%08X \n"
+											 "R2  = 0x%08X \n"
+											 "R3  = 0x%08X \n"
+											 "R12 = 0x%08X \n"
+											 "LR  = 0x%08X \n"
+											 "PC  = 0x%08X \n"
+											 "PSR = 0x%08X \r\n",stack_pointer[0],
+																				 stack_pointer[1],
+																				 stack_pointer[2],
+																				 stack_pointer[3],
+																				 stack_pointer[4],
+																				 stack_pointer[5],
+																				 stack_pointer[6],
+																				 stack_pointer[7]);
+	/** \} */
+	
   while (1)
   {
   }
@@ -69,6 +94,29 @@ void HardFault_Handler(void)
 void MemManage_Handler(void)
 {
   /* Go to infinite loop when Memory Manage exception occurs */
+	/** \addtogroup user
+	 *  \{ */
+	debug_uart_printf_1("program fail \r\n");
+	
+	// 打印堆栈信息
+	uint32_t* stack_pointer = (uint32_t*) __get_MSP(); // 使用 __get_PSP() 获取线程模式堆栈指针
+	debug_uart_printf_1("Hard Fault \n"
+											 "R0  = 0x%08X \n"
+											 "R1  = 0x%08X \n"
+											 "R2  = 0x%08X \n"
+											 "R3  = 0x%08X \n"
+											 "R12 = 0x%08X \n"
+											 "LR  = 0x%08X \n"
+											 "PC  = 0x%08X \n"
+											 "PSR = 0x%08X \r\n",stack_pointer[0],
+																				 stack_pointer[1],
+																				 stack_pointer[2],
+																				 stack_pointer[3],
+																				 stack_pointer[4],
+																				 stack_pointer[5],
+																				 stack_pointer[6],
+																				 stack_pointer[7]);
+	/** \} */
   while (1)
   {
   }
@@ -82,6 +130,31 @@ void MemManage_Handler(void)
 void BusFault_Handler(void)
 {
   /* Go to infinite loop when Bus Fault exception occurs */
+	
+	/** \addtogroup user
+	 *  \{ */
+	debug_uart_printf_1("program fail \r\n");
+	
+	// 打印堆栈信息
+	uint32_t* stack_pointer = (uint32_t*) __get_MSP(); // 使用 __get_PSP() 获取线程模式堆栈指针
+	debug_uart_printf_1("Hard Fault \n"
+											 "R0  = 0x%08X \n"
+											 "R1  = 0x%08X \n"
+											 "R2  = 0x%08X \n"
+											 "R3  = 0x%08X \n"
+											 "R12 = 0x%08X \n"
+											 "LR  = 0x%08X \n"
+											 "PC  = 0x%08X \n"
+											 "PSR = 0x%08X \r\n",stack_pointer[0],
+																				 stack_pointer[1],
+																				 stack_pointer[2],
+																				 stack_pointer[3],
+																				 stack_pointer[4],
+																				 stack_pointer[5],
+																				 stack_pointer[6],
+																				 stack_pointer[7]);
+	/** \} */
+	
   while (1)
   {
   }

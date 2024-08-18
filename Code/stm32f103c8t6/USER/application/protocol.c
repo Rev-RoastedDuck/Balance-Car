@@ -11,10 +11,16 @@
 /*----------------------------------配置参数-----------------------------------*/
 /******************************************************************************/
 #define g_PACKET_HEADER_LEN    (2)
-static const uint8_t g_PACKET_HEADER[g_PACKET_HEADER_LEN]={0xAA,0xAB};    // 定义数据包头
+static const uint8_t g_PACKET_HEADER[g_PACKET_HEADER_LEN]={0xAA,0xAB};    							// 定义数据包头
 
 #define g_PACKET_TAIL_LEN    (2)
-static const uint8_t g_PACKET_TAIL[g_PACKET_TAIL_LEN]={0xFA,0xFB};        // 定义数据包尾
+static const uint8_t g_PACKET_TAIL[g_PACKET_TAIL_LEN]={0xFA,0xFB};        							// 定义数据包尾
+
+#define g_SIMPLY_PACKET_HEADER_LEN    (2)
+static const uint8_t g_SIMPLY_PACKET_HEADER[g_SIMPLY_PACKET_HEADER_LEN]={0xBA,0xBB};    // 定义数据包头
+
+#define g_SIMPLY_PACKET_TAIL_LEN    (2)
+static const uint8_t g_SIMPLY_PACKET_TAIL[g_SIMPLY_PACKET_TAIL_LEN]={0xEA,0xEB};        // 定义数据包尾
 
 
 /******************************************************************************/
@@ -69,7 +75,49 @@ void transmit_interface(const uint8_t *buff, uint8_t len,Server_Type server)
  */
 void set_config_params_handler(const Receive_Data* data)
 {
+	g_BALANCE_CAR_INFO.pid_control.open_loop = data->config_params.need_open_loop_control? TRUE :
+																																													FALSE;
+	
+	// 清除误差
+	pic_loc_clear_error(&g_BALANCE_CAR_INFO.pid_data.balance_pid);
+	pic_loc_clear_error(&g_BALANCE_CAR_INFO.pid_data.speed_pid);
+	pic_loc_clear_error(&g_BALANCE_CAR_INFO.pid_data.turn_pid);
+	
+	g_BALANCE_CAR_INFO.pid_data.balance_pid.Kp = data->config_params.balance_pid[0];	// 直立环 P D
+	g_BALANCE_CAR_INFO.pid_data.balance_pid.Td = data->config_params.balance_pid[1];	
+	
+	g_BALANCE_CAR_INFO.pid_data.speed_pid.Kp = data->config_params.speed_pid[0];	// 速度环 P I
+	g_BALANCE_CAR_INFO.pid_data.speed_pid.Ti = data->config_params.speed_pid[1];
+	
+	g_BALANCE_CAR_INFO.pid_data.turn_pid.Kp = data->config_params.turn_pid[0]; 	// 转向环 P D 
+	g_BALANCE_CAR_INFO.pid_data.turn_pid.Td = data->config_params.turn_pid[1];
+	
+	g_BALANCE_CAR_INFO.pid_data.balance_pid.desired_value = data->config_params.desired_pitch_angle;	// 机械中值
+	
+	g_BALANCE_CAR_INFO.encoder_date.encoder_left_filter.k = data->config_params.encoder_l_filter[0];	// 左编码器滤波器参数 一阶滤波 K
+	g_BALANCE_CAR_INFO.encoder_date.encoder_right_filter.k = data->config_params.encoder_r_filter[0];	// 右编码器滤波器参数 一阶滤波 K
 
+	g_BALANCE_CAR_INFO.function_option.need_dmp_reset = data->config_params.function_options[0];
+
+	if(g_BALANCE_CAR_INFO.function_option.need_oled_show != data->config_params.function_options[1]){
+		g_BALANCE_CAR_INFO.function_option.need_oled_clear = TRUE;
+		g_BALANCE_CAR_INFO.function_option.need_oled_show = data->config_params.function_options[1];
+	}
+
+	
+	
+	debug_uart_send_2(1,"P: %0.2f D:%0.2f T: %0.2f \r\n",g_BALANCE_CAR_INFO.pid_data.balance_pid.Kp,
+																												g_BALANCE_CAR_INFO.pid_data.balance_pid.Td,
+																												g_BALANCE_CAR_INFO.pid_data.balance_pid.Tsam);
+	
+	debug_uart_send_2(1,"P: %0.2f D: %0.2f T: %0.2f \r\n",g_BALANCE_CAR_INFO.pid_data.speed_pid.Kp,
+																												g_BALANCE_CAR_INFO.pid_data.speed_pid.Td,
+																												g_BALANCE_CAR_INFO.pid_data.speed_pid.Tsam);
+
+	debug_uart_send_2(1,"P: %0.2f D: %0.2f T: %0.2f \r\n",g_BALANCE_CAR_INFO.pid_data.turn_pid.Kp,
+																												g_BALANCE_CAR_INFO.pid_data.turn_pid.Td,
+																												g_BALANCE_CAR_INFO.pid_data.turn_pid.Tsam);
+	
 }
 
 
@@ -80,7 +128,24 @@ void set_config_params_handler(const Receive_Data* data)
  */
 void set_movemont_params_handle(const Receive_Data* data)
 {
+	debug_uart_send_2(1,"set_movemont_params_handle \r\n");
+	
+	g_BALANCE_CAR_INFO.pid_data.turn_pid.desired_value = data->movement_params.turn_angle;
+	
+	// 增量式pid时，用期望速度
+	if(g_BALANCE_CAR_INFO.pid_control.open_loop){
+		g_BALANCE_CAR_INFO.pid_open_loop_data.motor_left_pwm_reload_value = (int16_t)data->movement_params.move_speed[0];
+		g_BALANCE_CAR_INFO.pid_open_loop_data.motor_right_pwm_reload_value = (int16_t)data->movement_params.move_speed[1];
+	}
+	else{
+		// speed_pid(增量式pid) 目标速度 
+		// g_BALANCE_CAR_INFO.pid_data.speed_pid.desired_value = data->movement_params.move_speed[0];
+		
+		// speed_pid(位置式pid) 目标移动距离
+		g_BALANCE_CAR_INFO.pid_data.speed_pid.desired_value = (uint16_t)data->movement_params.move_speed[1];
+	}
 
+	
 }
 
 
@@ -92,6 +157,23 @@ void set_movemont_params_handle(const Receive_Data* data)
 void parse_handle_params_handle(const Receive_Data* data)
 {
 
+}
+
+/**
+ * @brief  判断是不是服务枚举类中的其中一个
+ * @param  数据包
+ * @return None
+ */
+boolean check_packet_server_type(uint8_t data)
+{
+    switch (data) {
+        case set_config_params:
+        case set_movement_params:
+				case parse_handle_params:
+            return TRUE;
+        default:
+            return FALSE;
+    }
 }
 
 /**
@@ -113,17 +195,18 @@ void select_server_handler(Server_Type server)
 				case parse_handle_params:
 					parse_handle_params_handle(&g_RX_DATA);
 					break;
-        case none_server:
-            break;
+				
         default:
+        case none_server:
             break;
     }
 }
 
 /******************************************************************************/
-/*----------------------------------校验函数-----------------------------------*/
+/*----------------------------------解析函数----------------------------------*/
 /******************************************************************************/
-
+/** \addtogroup 多层校验数据包解析
+ *  \{ */
 /**
  * @brief  校验数据头
  * @param  数据包
@@ -218,33 +301,11 @@ boolean check_packet_size(uint8_t*data_list,uint8_t len,uint8_t desire_size)
 }
 
 /**
- * @brief  判断是不是服务枚举类中的其中一个
- * @param  数据包
- * @return None
- */
-boolean check_packet_server_type(uint8_t data)
-{
-    switch (data) {
-        case set_config_params:
-        case set_movement_params:
-				case parse_handle_params:
-            return TRUE;
-        default:
-            return FALSE;
-    }
-}
-
-/******************************************************************************/
-/*------------------------------------接收------------------------------------*/
-/******************************************************************************/
-
-/**
  * @brief  解析数据包
  * @param  data  一字节数据
  * @return None
  * @todo
  */
-
 static uint8_t step = 0;
 static uint8_t data_pack_len = 0;
 static uint8_t data_pack_size = 0;        // 用uint8没有问题
@@ -287,6 +348,10 @@ void parse_packet(uint8_t data)
         {
             step++;
             server = (Server_Type)data;
+					
+						if(server){
+						
+						}
         }else{
             step = 0;
         }
@@ -338,6 +403,64 @@ void parse_packet(uint8_t data)
 
     step = 0;
 }
+/** \group 多层校验数据包解析
+ **  \} */
+
+
+
+/** \addtogroup 简单数据包解析
+ *  \{ */
+/**
+ * @brief      	简单数据包解析
+ * @param[in]  	data 缓存区地址
+ * @param[in]  	start_index 数据包起始偏移量
+ * @param[in]  	end_index 数据包末尾偏移量
+ * @return 			None
+ * @note				默认第三个位置是服务参数选项
+ */
+void parse_packet_simple(uint8_t* data,uint8_t start_index,uint8_t end_index){		
+		// 1.校验长度
+		if(end_index - start_index <= 4){
+			debug_uart_send_2(0,"simple pack len: %d \r\n",end_index - start_index);
+			return;
+		}
+		
+		// 2.校验包头
+		if(!(data[start_index] == g_SIMPLY_PACKET_HEADER[0]
+			&& data[start_index + 1] == g_SIMPLY_PACKET_HEADER[1])){
+			debug_uart_send_2(0,"simple pack header: %x  %x \r\n",data[start_index],data[start_index + 1]);
+			return;
+		}
+		
+		// 3.校验包尾
+		if(!(data[end_index] != g_SIMPLY_PACKET_TAIL[1]
+			&& data[end_index - 1] != g_SIMPLY_PACKET_TAIL[0])){
+			debug_uart_send_2(0,"simple pack tail: %x  %x \r\n",data[end_index - 1],data[end_index]);
+			return;
+		}
+			
+		// 4.确认服务
+		if(!check_packet_server_type(data[start_index + 2])){
+			debug_uart_send_2(0,"simple pack server: %x \r\n",data[start_index + 2]);
+			return;
+		}
+		
+		// 5.转载数据
+		uint8_t pack_lenth = end_index - start_index - 5;
+		for(uint8_t index = 0;index < pack_lenth;index++){
+			g_RX_DATA.rx_data_buff[index] = data[start_index + 3 + index];
+			debug_uart_send_2(1,"%x ",g_RX_DATA.rx_data_buff[index]);
+		}
+		
+		// 6.执行服务
+		Server_Type server_simple_packet = (Server_Type)data[start_index + 2];
+		select_server_handler(server_simple_packet);
+		debug_uart_send_2(0,"simple pack parse success \r\n");
+}
+
+/** \group 简单数据包解析
+ **  \} */
+
 
 
 /******************************************************************************/

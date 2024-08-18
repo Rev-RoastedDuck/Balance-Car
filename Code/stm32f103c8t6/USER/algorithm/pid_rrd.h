@@ -86,20 +86,25 @@ typedef struct{
  * @param  pid:    PID
  * @return None
  */
-void pid_parament_init_rrd(PID_Inc_Info *pid);
+void pid_inc_parament_init_rrd(PID_Inc_Info *pid);
+void pid_loc_parament_init_rrd(PID_Loc_Info *pid);
 
 /**
- * @brief  增量式PID运算
+ * @brief  清除偏差值
  * @param  pid:    PID
  * @return None
  */
-void pid_Inc_calc_rrd(PID_Inc_Info *pid);
+void pic_loc_clear_error(PID_Loc_Info *pid);
+void pic_inc_clear_error(PID_Inc_Info *pid);
+
+
 
 /**
- * @brief  位置式PID运算
+ * @brief  PID运算
  * @param  pid:    PID
  * @return None
  */
+void pid_inc_calc_rrd(PID_Inc_Info *pid);
 void pid_loc_calc_rrd(PID_Loc_Info *pid);
 /** \} */
 

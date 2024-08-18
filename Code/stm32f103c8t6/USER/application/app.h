@@ -26,13 +26,16 @@
 #include "systick.h"
 #include "flash.h"
 
+#include "logic.h"
 
-void oled_show_data(BalanceCarInfo *info);
+
+void app_run(void);
 void app_params_init(void);
 void app_device_init(void);
 
 void app_start_task(void);
 void app_update_params(void);
+
 void flash_save_data(BalanceCarInfo *info);
 void flash_read_data(BalanceCarInfo *info);
 

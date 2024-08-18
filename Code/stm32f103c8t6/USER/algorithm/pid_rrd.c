@@ -7,6 +7,8 @@
 
 #include "pid_rrd.h"
 
+
+
 /** \addtogroup 过滤器
  * \{ */
 /******************************************************************************/
@@ -87,7 +89,7 @@ static void __pid_loc_calc_rrd(PID_Loc_Info *pid)
     pid->SEk += pid->En_0;                                                       // 历史偏差总和
 
     t1 = pid->Kp * pid->En_0;                                                    // 比例输出 P
-    t2 = pid->Ti == 0? 0:((pid->Tsam/pid->Ti)*pid->Kp)*pid->SEk*pid->Kp;         // 积分输出 I
+    t2 = pid->Ti == 0? 0:((pid->Tsam/pid->Ti)*pid->Kp) * pid->SEk;         // 积分输出 I
 
     td = pid->Td / pid->Tsam;                                                    // 微分输出 D
     t3 = td * pid->Kp * (pid->En_0 - pid->En_1);                                 // (最近两次偏差之差)
@@ -104,8 +106,7 @@ static void __pid_loc_calc_rrd(PID_Loc_Info *pid)
  * @param  pid:    PID
  * @return None
  */
-void pid_parament_init_rrd(PID_Inc_Info *pid)
-{
+void pid_inc_parament_init_rrd(PID_Inc_Info *pid){
     pid->Kp=0;
     pid->Td=0;
     pid->Ti=0;
@@ -117,13 +118,55 @@ void pid_parament_init_rrd(PID_Inc_Info *pid)
     pid->desired_value = 0;
     pid->current_value = 0;
 
-    pid->desired_value =0;
     pid->pwm_data->pwm_curr_duty=0;
     pid->pwm_data->pwm_count_period=0;
 }
 
+/**
+ * @brief  pid清除偏差值
+ * @param  pid:    PID
+ * @return None
+ */
+void pic_inc_clear_error(PID_Inc_Info *pid){
+    pid->En_0 = 0;
+    pid->En_1 = 0;
+    pid->En_2 = 0;
+}
 
-void pid_Inc_calc_rrd(PID_Inc_Info *pid)
+/**
+ * @brief  pid初始化
+ * @param  pid:    PID
+ * @return None
+ */
+void pid_loc_parament_init_rrd(PID_Loc_Info *pid){
+    pid->Kp=0;
+    pid->Td=0;
+    pid->Ti=0;
+
+    pid->En_0 = 0;
+    pid->En_1 = 0;
+    pid->SEk = 0;
+
+    pid->desired_value = 0;
+    pid->current_value = 0;
+
+    pid->pwm_data->pwm_curr_duty=0;
+    pid->pwm_data->pwm_count_period=0;
+}
+
+/**
+ * @brief  pid清除偏差值
+ * @param  pid:    PID
+ * @return None
+ */
+void pic_loc_clear_error(PID_Loc_Info *pid){
+		pid->SEk = 0;
+    pid->En_0 = 0;
+    pid->En_1 = 0;
+}
+
+
+void pid_inc_calc_rrd(PID_Inc_Info *pid)
 {
     __preprocessing(pid,FALSE);
     __pid_inc_calc_rrd(pid);

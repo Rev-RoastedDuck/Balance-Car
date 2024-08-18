@@ -41,6 +41,7 @@ typedef struct _RRD_DRIVER_FLASH {
 	void 			(*flash_read_vector_data)		(uint32_t address, void* data, uint16_t vector_size);
 	uint32_t 	(*flash_write_vector_data)	(uint32_t address, const void* data, uint16_t vector_size);
 }RRD_DRIVER_FLASH;
+
 /******************************************************************************/
 /*-----------------------------------外部接口---------------------------------*/
 /******************************************************************************/

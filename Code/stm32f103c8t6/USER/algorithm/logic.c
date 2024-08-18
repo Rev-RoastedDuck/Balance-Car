@@ -6,6 +6,13 @@
  */
 #include "logic.h"
 
+// 直立环  
+// 		震荡值 160 9.2
+//		稳定值 160 8.5
+// 		取	值	96 5.1
+
+// 速度环
+// 		稳定值 110 0.58
 
 /**
  * @brief   		计算pid位置环
@@ -16,11 +23,15 @@
  */
 float logic_calc_pid_balance(PID_Loc_Info *pid,
 														float current_angle,
-														float gyro_y){
+														float gyro_y)
+{
 	pid->current_value = current_angle;
 	
-	pid->En_0 = pid->current_value - pid->desired_value;	
-	pid->calc_result = pid->Kp * pid->En_0 + pid->Td / pid->Tsam * pid->Kp * gyro_y;
+	pid->En_0 = pid->current_value - pid->desired_value;
+															
+	float t1 =  pid->Kp * pid->En_0;
+	float t2 = pid->Td * gyro_y;	// Kd
+	pid->calc_result = t1 + t2;	
 	
 	return pid->calc_result;
 }
@@ -34,25 +45,24 @@ float logic_calc_pid_balance(PID_Loc_Info *pid,
  */
 float logic_calc_pid_speed(PID_Loc_Info *pid,
 													int32_t encoder_value_left,
-													int32_t encoder_value_right){
+													int32_t encoder_value_right)
+{
     float t1,t2;
 		
 		// pid->desired_value 期望速度
-		// (encoder_value_left + encoder_value_right) / 2 - pid->desired_value
     pid->En_0 = (encoder_value_left + encoder_value_right) - 0;
-    
-		// pid->desired_value 期望增加的位移												
-		pid->SEk += pid->En_0 + pid->desired_value;
+    pid->En_0 = pid->En_0 * 0.5 + pid->En_1 * 0.5;								// 滤波
+		pid->SEk += pid->En_0;
+//		pid->SEk += pid->En_0 + pid->desired_value;
 		
-		if		 (pid->SEk > 10000 ) {pid->SEk = 10000;}															// 积分限幅
+		if		 (pid->SEk > 10000 ) {pid->SEk = 10000;}								// 积分限幅
 		else if(pid->SEk < -10000) {pid->SEk = -10000;}
     
 		t1 = pid->Kp * pid->En_0;
-    t2 = ((pid->Tsam/pid->Ti)*pid->Kp)*pid->SEk*pid->Kp;
+    t2 = pid->Ti * pid->SEk;	// Ki
 											
     pid->calc_result = t1 + t2;
     pid->En_1 = pid->En_0;
-		
 		return pid->calc_result;
 }
 
