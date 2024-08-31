@@ -34,6 +34,6 @@ float logic_calc_pid_speed(PID_Loc_Info *pid,int32_t encoder_value_left,int32_t 
  * @param[in]   pid  位置式pid
  * @return  		pid计算结果
  */
-float logic_calc_pid_turn(PID_Loc_Info *pid);
+float logic_calc_pid_turn(PID_Loc_Info *pid,float yaw,float gyro_z);
 
 #endif /* CODE_LOGIC_H_ */

@@ -875,7 +875,7 @@ int mpu_init(void)
         return -1;
     if (mpu_set_lpf(42))
         return -1;
-    if (mpu_set_sample_rate(50))
+    if (mpu_set_sample_rate(1000))
         return -1;
     if (mpu_configure_fifo(0))
         return -1;
@@ -2891,7 +2891,7 @@ u8 run_self_test(void)
 	//char test_packet[4] = {0};
 	long gyro[3], accel[3]; 
 	result = mpu_run_self_test(gyro, accel);
-	if (result == 0x3) 
+	if (result == 0x7) 
 	{
 		/* Test passed. We can trust the gyro data here, so let's push it down
 		* to the DMP.
@@ -2908,8 +2908,8 @@ u8 run_self_test(void)
 		accel[1] *= accel_sens;
 		accel[2] *= accel_sens;
 		dmp_set_accel_bias(accel);
-		return 0;
-	}else return 1;
+	}
+	return 0;
 }
 
 /**
@@ -3028,6 +3028,8 @@ u8 mpu_dmp_init(void){
 	return 0;
 }
 
+/** \addtogroup user
+ * \{ */
 /**
   * @brief   		 获取dmp处理后的数据
   * @param[out]
@@ -3067,6 +3069,57 @@ u8 mpu_dmp_get_data(float *pitch,float *roll,float *yaw)
 	}else return 2;
 	return 0;
 }
+
+
+/**
+  * @brief   		 获取dmp处理后的数据
+  * @param[out]
+  * @return  		 0 正常
+	* @note				 pitch:俯仰角 精度:0.1°   范围:-90.0° <---> +90.0°
+	*							 roll:横滚角  精度:0.1°   范围:-180.0°<---> +180.0°
+	*							 yaw:航向角   精度:0.1°   范围:-180.0°<---> +180.0°
+  */
+u8 mpu_dmp_get_all_data(float *euler_angles,int16_t *acc,int16_t *gyro)
+{
+	float q0=1.0f,q1=0.0f,q2=0.0f,q3=0.0f;
+	unsigned long sensor_timestamp;
+	short sensors;
+	unsigned char more;
+	long quat[4]; 
+	if(dmp_read_fifo(gyro, acc, quat, &sensor_timestamp, &sensors,&more))return 1;	 
+	/* Gyro and accel data are written to the FIFO by the DMP in chip frame and hardware units.
+	 * This behavior is convenient because it keeps the gyro and accel outputs of dmp_read_fifo and mpu_read_fifo consistent.
+	**/
+	/*if (sensors & INV_XYZ_GYRO )
+	send_packet(PACKET_TYPE_GYRO, gyro);
+	if (sensors & INV_XYZ_ACCEL)
+	send_packet(PACKET_TYPE_ACCEL, accel); */
+	/* Unlike gyro and accel, quaternions are written to the FIFO in the body frame, q30.
+	 * The orientation is set by the scalar passed to dmp_set_orientation during initialization. 
+	**/
+	if(sensors&INV_WXYZ_QUAT) 
+	{
+		q0 = quat[0] / q30;	//q30格式转换为浮点数
+		q1 = quat[1] / q30;
+		q2 = quat[2] / q30;
+		q3 = quat[3] / q30; 
+		//计算得到俯仰角/横滚角/航向角
+		euler_angles[0] = asin(-2 * q1 * q3 + 2 * q0* q2)* 57.3;	// pitch
+		euler_angles[1]  = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2* q2 + 1)* 57.3;	// roll
+		euler_angles[2]   = atan2(2*(q1*q2 + q0*q3),q0*q0+q1*q1-q2*q2-q3*q3) * 57.3;	//yaw
+	}else return 2;
+	
+//	acc[0] = accel_row[0];
+//	acc[1] = accel_row[1];
+//	acc[2] = accel_row[2];
+
+//	gyro[0] = gyro_row[0];
+//	gyro[1] = gyro_row[1];
+//	gyro[2] = gyro_row[2];
+	return 0;
+}
+/** \} user*/
+
 
 /**
   * @brief   		 获取采样频率分频值

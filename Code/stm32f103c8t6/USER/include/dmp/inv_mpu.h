@@ -23,7 +23,7 @@
 #include "stm32f10x.h"
 
 //定义输出速度
-#define DEFAULT_MPU_HZ  (100)		//100Hz
+#define DEFAULT_MPU_HZ  (200)		//200Hz
 
 #define INV_X_GYRO      (0x40)
 #define INV_Y_GYRO      (0x20)
@@ -78,12 +78,6 @@ int mpu_get_dmp_state(unsigned char *enabled);
 
 int mpu_get_lpf(unsigned short *lpf);
 int mpu_set_lpf(unsigned short lpf);
-
-int mpu_get_gyro_fsr(unsigned short *fsr);
-int mpu_set_gyro_fsr(unsigned short fsr);
-
-int mpu_get_accel_fsr(unsigned char *fsr);
-int mpu_set_accel_fsr(unsigned char fsr);
 
 int mpu_get_compass_fsr(unsigned short *fsr);
 
@@ -181,6 +175,40 @@ u8 run_self_test(void);
   */
 u8 mpu_dmp_init(void);
 
+
+/**
+ * @brief   		  获取gyro量程
+ * @param[out]		fsr	
+ * @return  		  0 成功获取
+ *
+*/
+int mpu_get_gyro_fsr(unsigned short *fsr);
+
+/**
+ * @brief   		  设置gyro量程
+ * @param[out]		fsr	
+ * @return  		  0 成功获取
+ *
+*/
+int mpu_set_gyro_fsr(unsigned short fsr);
+
+/**
+ * @brief   		  获取accle量程
+ * @param[out]		fsr	
+ * @return  		  0 成功获取
+ *
+*/
+int mpu_get_accel_fsr(unsigned char *fsr);
+
+/**
+ * @brief   		  设置accle量程
+ * @param[out]		fsr	
+ * @return  		  0 成功获取
+ *
+*/
+int mpu_set_accel_fsr(unsigned char fsr);
+
+
 /**
   * @brief   			获取 DMP 计算出的姿态数据
   * @param[out]  	pitch  指向 `float` 类型的指针，用于存储俯仰角（Pitch）。
@@ -192,6 +220,13 @@ u8 mpu_dmp_init(void);
   * @retval 			 0  表示成功获取数据
   */
 u8 mpu_dmp_get_data(float *pitch, float *roll, float *yaw);
+
+/**
+  * @brief   		 获取dmp所有数据
+  * @param[out]		smplrt_div	
+  * @return  		 0 成功获取
+  */
+u8 mpu_dmp_get_all_data(float *euler_angles,int16_t *acc,int16_t *gyro);
 
 /**
   * @brief   		 获取采样频率分频值

@@ -73,20 +73,39 @@ typedef struct _HandleDataInfo{
 typedef struct _FunctionOption{
 		uint8_t need_dmp_reset;
 		uint8_t need_oled_show;
+		uint8_t	need_send_status_info;
+	
 		boolean need_oled_clear;
 }FunctionOption;
 
 typedef struct _BalanceCarInfo{
-		PidDataInfo					pid_data;
-		PidOpenLoopDataInfo pid_open_loop_data;
-		PidControl 					pid_control;
+							PidDataInfo					pid_data;
+							PidOpenLoopDataInfo pid_open_loop_data;
+		volatile 	PidControl 					pid_control;
 	
-		HandleInfo					handle_data;
-		EncoderDataInfo 		encoder_date;
-		Mpu6050DataInfo 		mpu6050_data;
-		FunctionOption			function_option;
-		
+							HandleInfo					handle_data;
+							EncoderDataInfo 		encoder_date;
+							Mpu6050DataInfo 		mpu6050_data;
+		volatile 	FunctionOption			function_option;
 }BalanceCarInfo;
 
 
+/** \addtpgroup temp
+	* \{ */
+typedef union{
+	
+		struct{
+				float pitch;
+				float groy_y;
+				uint32_t left_pwm;
+				uint32_t right_pwm;
+				int32_t left_encoder_count;
+				int32_t right_encoder_count;
+		}balance_data;
+		
+		uint8_t tx_data_buff[40];
+}Transmit_Data;
+
+
+/** \} */
 #endif

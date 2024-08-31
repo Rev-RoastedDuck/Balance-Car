@@ -58,7 +58,7 @@ static void encoder_init(			RRD_DRIVER_ENCODER* driver,
 	
 	TIM_ICInitTypeDef TIM_ICInitStructure;
 	TIM_ICStructInit(&TIM_ICInitStructure); 										// TIM_ICInitStruct初始化
-	TIM_ICInitStructure.TIM_ICFilter = 10; 											// 设置滤波器长度
+	TIM_ICInitStructure.TIM_ICFilter = 8; 											// 设置滤波器长度
 	TIM_ICInit(tim_x, &TIM_ICInitStructure); 										// 根据 TIM_ICInitStruct 的参数初始化外设 TIMx
 
 	TIM_SetCounter(tim_x, 0);
@@ -71,7 +71,7 @@ static void encoder_init(			RRD_DRIVER_ENCODER* driver,
  * @return  		编码器的计数值
  */
 static int32_t encoder_get_count(RRD_DRIVER_ENCODER* driver){
-    driver->count = TIM_GetCounter(driver->tim_x);
+    driver->count = (short)TIM_GetCounter(driver->tim_x);
     TIM_SetCounter(driver->tim_x, 0);
     return driver->count;
 }

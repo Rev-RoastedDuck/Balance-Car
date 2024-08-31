@@ -15,7 +15,7 @@
 #include "motor.h"
 #include "tb6612fng.h"
 
-
+extern Transmit_Data	g_TRANSMIT_DATA;
 extern BalanceCarInfo g_BALANCE_CAR_INFO;
 
 extern RRD_DEVICE_MOTOR* g_MOTOR_DEVICE_LEFT;

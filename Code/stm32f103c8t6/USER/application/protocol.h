@@ -27,7 +27,7 @@
 #include "debug_uart.h"
 
 
-#define Only_Receive_Data		(0)
+#define Only_Receive_Data		(1)
 
 /******************************************************************************/
 /*--------------------------------数据结构定义---------------------------------*/
@@ -38,21 +38,20 @@ typedef enum{
 		set_config_params = 1,							  // 设置参数
 		set_movement_params = 2,							// 设置运动信息
 		parse_handle_params = 3,							// 解析手柄数据
-	
+		
+		send_balance_data = 11									// 发送平衡车数据
 }Server_Type;                             // 定义服务类型
 
 // 接收
 // Note: 使用sizeof()从buff数组中，获取对应数据的个数
 typedef union{
 		struct{
-				uint32_t 	need_open_loop_control;				// 开启开环控制  1:开环  0:闭环
-				float 		balance_pid[2];							// 直立环 P D
-				float 		speed_pid[2];								// 速度环 P I
-				float 		turn_pid[2];								// 转向环 P D 
+//				float 		balance_pid[2];							// 直立环 P D
+//				float 		speed_pid[2];								// 速度环 P I
+//				float 		turn_pid[2];								// 转向环 P D 
+				float 		pid_info[2];								// PID  1: 直立环 P D 2: 度环 P I 3: 向环 P D 
 				float 		desired_pitch_angle;				// 机械中值
-				float			encoder_l_filter[1];				// 左编码器滤波器参数 一阶滤波 K
-				float			encoder_r_filter[1];				// 右编码器滤波器参数 一阶滤波 K
-				uint8_t		function_options[4];				// 重置dmp 显示pid 显示状态
+				uint8_t		function_options[4];				// pid设置号 oled显示	 发送状态信息 need_open_loop_control
 		}config_params;
 		
 		struct{
@@ -67,24 +66,27 @@ typedef union{
 				uint32_t command;
 		}handle_params;
 		
-    uint8_t rx_data_buff[50];
+    uint8_t rx_data_buff[60];
 }Receive_Data;
 
-#if Only_Receive_Data
+#if !Only_Receive_Data
 // 发送
 typedef union{
-		uint8_t block;
-    // 注意字节对齐的问题
+	
+		struct{
+				float pitch;
+				float groy_y;
+		}balance_data;
+		
+		uint8_t tx_data_buff[50];
 }Transmit_Data;
 #endif
 
 
 /******************************************************************************/
-/*----------------------------------全局函数-----------------------------------*/
+/*----------------------------------全局函数----------------------------------*/
 /******************************************************************************/
-void transmit_data(Server_Type server);
-void parse_packet(uint8_t data);
-boolean check_packet_tail(uint8_t data);
+uint8_t buile_packet(const uint8_t *buff, uint8_t len,Server_Type server,uint8_t *packet);
 
 void parse_packet_simple(uint8_t* data,uint8_t start_index,uint8_t end_index);
 

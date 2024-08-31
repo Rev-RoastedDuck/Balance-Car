@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\USER\include\dmp;.\USER\drivers;.\USER\common;.\USER\devices;.\USER\algorithm;.\USER\include\stm32_it</IncludePath>
+              <IncludePath>.\USER\include\dmp;.\USER\drivers;.\USER\common;.\USER\devices;.\USER\algorithm;.\USER\include\stm32_it;.\USER\application</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -431,6 +431,26 @@
               <FileType>1</FileType>
               <FilePath>.\USER\devices\oled.c</FilePath>
             </File>
+            <File>
+              <FileName>motor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\devices\motor.c</FilePath>
+            </File>
+            <File>
+              <FileName>tb6612fng.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\devices\tb6612fng.c</FilePath>
+            </File>
+            <File>
+              <FileName>blutooth.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\devices\blutooth.c</FilePath>
+            </File>
+            <File>
+              <FileName>encoders.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\devices\encoders.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -450,6 +470,36 @@
               <FileName>encoder.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\USER\drivers\encoder.c</FilePath>
+            </File>
+            <File>
+              <FileName>systick.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\drivers\systick.c</FilePath>
+            </File>
+            <File>
+              <FileName>systick.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\USER\drivers\systick.h</FilePath>
+            </File>
+            <File>
+              <FileName>flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\drivers\flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>flash.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\USER\drivers\flash.h</FilePath>
+            </File>
+            <File>
+              <FileName>iwdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\drivers\iwdg.c</FilePath>
+            </File>
+            <File>
+              <FileName>iwdg.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\USER\drivers\iwdg.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -476,6 +526,11 @@
               <FileType>5</FileType>
               <FilePath>.\USER\common\typedef.h</FilePath>
             </File>
+            <File>
+              <FileName>global_config_macros.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\USER\common\global_config_macros.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -495,6 +550,31 @@
               <FileName>pid_rrd.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\USER\algorithm\pid_rrd.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>application</GroupName>
+          <Files>
+            <File>
+              <FileName>globals.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\application\globals.c</FilePath>
+            </File>
+            <File>
+              <FileName>app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\application\app.c</FilePath>
+            </File>
+            <File>
+              <FileName>protocol.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\application\protocol.c</FilePath>
+            </File>
+            <File>
+              <FileName>typedef_app.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\USER\application\typedef_app.h</FilePath>
             </File>
           </Files>
         </Group>

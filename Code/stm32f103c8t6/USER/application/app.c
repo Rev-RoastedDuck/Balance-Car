@@ -37,7 +37,7 @@ boolean mpu6050_has_picked_up(BalanceCarInfo *info){
 		return FALSE;
 }
 
-#define Has_Fell_Down_Threshold_PITCH 				65		// 判定为摔倒的阈值  
+#define Has_Fell_Down_Threshold_PITCH 				70		// 判定为摔倒的阈值  
 #define Has_Fell_Down_Check_Count_Limit 			100 	// 摔倒检测二次的次数
 #define Has_Fell_Down_Threshold_Fall_Count 		30  	// 摔倒检测二次确认为摔倒的次数
 boolean mpu6050_has_fell_down(BalanceCarInfo *info){
@@ -122,7 +122,7 @@ boolean mpu6050_has_put_down(BalanceCarInfo *info){
 		return FALSE;
 }
 
-#define Has_Rolled_Over_Threshold					15			// 判定为侧翻的阈值 
+#define Has_Rolled_Over_Threshold					20			// 判定为侧翻的阈值 
 boolean mpu6050_has_rolled_over(BalanceCarInfo *info){
 	if(ABS(info->mpu6050_data.mpu6050_euler_angles.roll) > Has_Rolled_Over_Threshold){
 		return TRUE;
@@ -206,16 +206,16 @@ void oled_show_data(BalanceCarInfo *info,
 	OLED_DRIVER.oled_show_string(3,1,"yaw: ");	
 	OLED_DRIVER.oled_show_float(3,12,info->mpu6050_data.mpu6050_euler_angles.yaw,2);
 
-//	OLED_DRIVER.oled_show_string(4,1,"encoder_l:");	
-//	OLED_DRIVER.oled_show_float(4,12,info->encoder_date.encoder_left,2);
-//	
-//	OLED_DRIVER.oled_show_string(5,1,"encoder_r:");	
-//	OLED_DRIVER.oled_show_float(5,12,info->encoder_date.encoder_right,2);
-	OLED_DRIVER.oled_show_string(4,1,"sek:");									
-	OLED_DRIVER.oled_show_float(4,12,info->pid_data.speed_pid.SEk,2);			
+	OLED_DRIVER.oled_show_string(4,1,"encoder_l:");	
+	OLED_DRIVER.oled_show_float(4,12,info->encoder_date.encoder_left,2);
 	
-	OLED_DRIVER.oled_show_string(5,1,"I:");									
-	OLED_DRIVER.oled_show_float(5,12,info->pid_data.speed_pid.Ti,2);								
+	OLED_DRIVER.oled_show_string(5,1,"encoder_r:");	
+	OLED_DRIVER.oled_show_float(5,12,info->encoder_date.encoder_right,2);
+//	OLED_DRIVER.oled_show_string(4,1,"sek:");									
+//	OLED_DRIVER.oled_show_float(4,12,info->pid_data.speed_pid.SEk,2);			
+//	
+//	OLED_DRIVER.oled_show_string(5,1,"I:");									
+//	OLED_DRIVER.oled_show_float(5,12,info->pid_data.speed_pid.Ti,2);								
 	
 	OLED_DRIVER.oled_show_string(6,1,"pwm_l:");	
 	OLED_DRIVER.oled_show_signed_num(6,12,motor_left->get_compare(motor_left),4);
@@ -238,12 +238,44 @@ void oled_show_pid_data(BalanceCarInfo *info){
 	OLED_DRIVER.oled_show_string(7,3,"P:");	 OLED_DRIVER.oled_show_float(7,5,info->pid_data.turn_pid.Kp,2);
 	OLED_DRIVER.oled_show_string(7,14,"D:");	OLED_DRIVER.oled_show_float(7,16,info->pid_data.turn_pid.Td,2);
 }
+
+void oled_show_mpu6050_data(BalanceCarInfo *info){
+	OLED_DRIVER.oled_show_string(1,1,"gyro_x: ");	
+	OLED_DRIVER.oled_show_float(1,12,info->mpu6050_data.mpu6050_gyro_data.x,2);
+	OLED_DRIVER.oled_show_string(2,1,"gyro_y: ");	
+	OLED_DRIVER.oled_show_float(2,12,info->mpu6050_data.mpu6050_gyro_data.y,2);
+	OLED_DRIVER.oled_show_string(3,1,"gyro_z: ");	
+	OLED_DRIVER.oled_show_float(3,12,info->mpu6050_data.mpu6050_gyro_data.z,2);
+	
+	OLED_DRIVER.oled_show_string(4,1,"acc_x: ");	
+	OLED_DRIVER.oled_show_float(4,12,info->mpu6050_data.mpu6050_acc_data.x,2);
+	OLED_DRIVER.oled_show_string(5,1,"acc_y: ");	
+	OLED_DRIVER.oled_show_float(5,12,info->mpu6050_data.mpu6050_acc_data.y,2);
+	OLED_DRIVER.oled_show_string(6,1,"acc_z: ");	
+	OLED_DRIVER.oled_show_float(6,12,info->mpu6050_data.mpu6050_acc_data.z,2);
+}
 /** \} */
 
 
 /** \addtogroup bluetooth
  *  \{ */
-
+void bluetooth_send_info(BalanceCarInfo *info,
+												RRD_DEVICE_MOTOR *left_motor,
+												RRD_DEVICE_MOTOR *right_motor)
+{
+	g_TRANSMIT_DATA.balance_data.groy_y = info->mpu6050_data.mpu6050_gyro_data.y;
+	g_TRANSMIT_DATA.balance_data.pitch = info->mpu6050_data.mpu6050_euler_angles.pitch;
+	g_TRANSMIT_DATA.balance_data.left_pwm = left_motor->get_compare(left_motor);
+	g_TRANSMIT_DATA.balance_data.right_pwm = right_motor->get_compare(right_motor);
+	g_TRANSMIT_DATA.balance_data.left_encoder_count = info->encoder_date.encoder_left;
+	g_TRANSMIT_DATA.balance_data.right_encoder_count = info->encoder_date.encoder_right ;
+	
+	uint8_t packet[60];
+	uint8_t packet_len = 0;
+	packet_len = buile_packet(g_TRANSMIT_DATA.tx_data_buff,sizeof(g_TRANSMIT_DATA.balance_data),send_balance_data,packet);
+	
+	BLUETOOTH_DEVICE.send_buff(packet,packet_len);
+}
  
 /** \} */
 
@@ -285,31 +317,37 @@ void task_callback_function(void){
 	}
 	else{
 		float calc_value = 0;
+		float diff_value = 0;
 		calc_value = logic_calc_pid_balance(&g_BALANCE_CAR_INFO.pid_data.balance_pid,
 																					g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_euler_angles.pitch,
 																					g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_gyro_data.y);
-		g_BALANCE_CAR_INFO.pid_data.speed_pid.desired_value = 0;
+		
 		calc_value += logic_calc_pid_speed(&g_BALANCE_CAR_INFO.pid_data.speed_pid,
 																				g_BALANCE_CAR_INFO.encoder_date.encoder_left,
 																				g_BALANCE_CAR_INFO.encoder_date.encoder_right);
-//		g_BALANCE_CAR_INFO.pid_data.turn_pid.current_value = 0;
-//		g_BALANCE_CAR_INFO.pid_data.turn_pid.desired_value = 0;
-//		calc_value += logic_calc_pid_turn(&g_BALANCE_CAR_INFO.pid_data.turn_pid);
+		g_BALANCE_CAR_INFO.pid_data.speed_pid.desired_value = 0;	// 清空增量值
+		
+		diff_value = logic_calc_pid_turn(&g_BALANCE_CAR_INFO.pid_data.turn_pid,
+																			g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_euler_angles.yaw,
+																			g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_gyro_data.z);
+		
+		float left_value = calc_value - diff_value;
+		float right_value = (calc_value + diff_value)*(-1);
 		
 		motor_set_speed(g_MOTOR_DEVICE_LEFT,
 										g_TB6612FNG_DEVICE_LEFT,
-										(int16_t)calc_value);
+										(int16_t)(left_value));
 		
 		motor_set_speed(g_MOTOR_DEVICE_RIGHT,
 										g_TB6612FNG_DEVICE_RIGHT,
-										(int16_t)calc_value);
+										(int16_t)(right_value));
 		debug_uart_send_2(1,"calc_value: %d\r\n",(int16_t)calc_value);
 	}
 	
 }
 
 inline void systick_start_task(void){
-	SYSTICK_DRIVER.init(10,TRUE,0);
+	SYSTICK_DRIVER.init(5,TRUE,0);
 	SYSTICK_DRIVER.set_interrupt_function(task_callback_function);
 }
  
@@ -323,10 +361,7 @@ inline void app_start_task(void){
 
 
 void app_run(void){
-	if(mpu6050_has_rolled_over(&g_BALANCE_CAR_INFO)										// 侧翻检测
-		|| mpu6050_has_picked_up(&g_BALANCE_CAR_INFO)										// 拿起检测
-		|| motor_has_stall(g_MOTOR_DEVICE_LEFT,g_ENCODER_DEVICE_LEFT)		// 堵转保护
-		|| motor_has_stall(g_MOTOR_DEVICE_RIGHT,g_ENCODER_DEVICE_RIGHT)){
+	if(mpu6050_has_rolled_over(&g_BALANCE_CAR_INFO)){
 
 		g_BALANCE_CAR_INFO.pid_control.open_loop = TRUE;
 		motor_set_speed(g_MOTOR_DEVICE_LEFT,g_TB6612FNG_DEVICE_LEFT,0);
@@ -348,6 +383,13 @@ void app_run(void){
 //		}
 	}
 	
+	// 发送状态信息
+	if(g_BALANCE_CAR_INFO.function_option.need_send_status_info){
+		bluetooth_send_info(&g_BALANCE_CAR_INFO,
+												g_MOTOR_DEVICE_LEFT,
+												g_MOTOR_DEVICE_RIGHT);
+	}
+	
 	// oled显示
 	if(g_BALANCE_CAR_INFO.function_option.need_oled_show >= 0){
 		if(g_BALANCE_CAR_INFO.function_option.need_oled_clear){
@@ -362,6 +404,9 @@ void app_run(void){
 				break;
 			case 2:
 				oled_show_pid_data(&g_BALANCE_CAR_INFO);
+				break;
+			case 3:
+				oled_show_mpu6050_data(&g_BALANCE_CAR_INFO);
 				break;
 			default:
 				break;
@@ -525,31 +570,34 @@ void app_params_init(void){
 
 void app_update_params(void){
 	// mpu6050 dmp
-	mpu_dmp_get_data(&g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_euler_angles.pitch,
-									&g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_euler_angles.roll,
-									&g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_euler_angles.yaw);
-	// mpu6050
 	int16_t Gyro[3];
 	int16_t Accel[3];
+	float Euler_Angles[3];
 	
-	MPU6050_DEVICE.mpu6050_get_acc(Accel);
-	MPU6050_DEVICE.mpu6050_get_gyro(Gyro);
-	
-	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_acc_data.x = MPU6050_DEVICE.mpu6050_acc_transition(Accel[0]);
-	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_acc_data.y = MPU6050_DEVICE.mpu6050_acc_transition(Accel[1]);
+	mpu_dmp_get_all_data(Euler_Angles,Accel,Gyro);
+//	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_acc_data.x = MPU6050_DEVICE.mpu6050_acc_transition(Accel[0]);
+//	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_acc_data.y = MPU6050_DEVICE.mpu6050_acc_transition(Accel[1]);
 	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_acc_data.z = MPU6050_DEVICE.mpu6050_acc_transition(Accel[2]);
 
 	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_gyro_data.x = MPU6050_DEVICE.mpu6050_gyro_transition(Gyro[0]);
 	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_gyro_data.y = MPU6050_DEVICE.mpu6050_gyro_transition(Gyro[1]);
 	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_gyro_data.z = MPU6050_DEVICE.mpu6050_gyro_transition(Gyro[2]);
-
+	
+	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_euler_angles.pitch = Euler_Angles[0];
+	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_euler_angles.roll = Euler_Angles[1];
+	g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_euler_angles.yaw = Euler_Angles[2];
+	
+	debug_uart_send_2(1,"Angle Gyro_y: %f,%f\r\n",g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_euler_angles.pitch,
+																		g_BALANCE_CAR_INFO.mpu6050_data.mpu6050_gyro_data.y);
+	
+	
+	
 	// encoders
-//	encoders_get_counts(&g_BALANCE_CAR_INFO,
-//													g_ENCODER_DEVICE_LEFT,
-//													g_ENCODER_DEVICE_RIGHT);
-	 encoder_get_filter_data(&g_BALANCE_CAR_INFO,
-	  												g_ENCODER_DEVICE_LEFT,
-														g_ENCODER_DEVICE_RIGHT);
+	encoder_get_filter_data(&g_BALANCE_CAR_INFO,
+													g_ENCODER_DEVICE_LEFT,
+													g_ENCODER_DEVICE_RIGHT);
+	debug_uart_send_2(1,"left: %8d    right: %8d \r\n",g_ENCODER_DEVICE_LEFT->count,g_ENCODER_DEVICE_RIGHT->count);												
+	
 	
 }
 /** \} */

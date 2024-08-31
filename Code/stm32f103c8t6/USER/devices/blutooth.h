@@ -23,8 +23,10 @@
 /*------------------------------------½á¹¹Ìå----------------------------------*/
 /******************************************************************************/
 typedef struct _RRD_DEVICE_BLUETOOTH{
-	int8_t 	(*init)	(void);
-	void 		(*send)	(const char *fmt,...);
+	int8_t 	(*init)									(void);
+	void 		(*send)									(const char *fmt,...);
+	void 		(*send_buff) (uint8_t *vector,uint16_t len);
+
 }RRD_DEVICE_BLUETOOTH;
 
 

@@ -39,7 +39,7 @@ void set_compare_range(RRD_DEVICE_MOTOR* motor_driver,const uint16_t min,const u
 static inline void set_compare(RRD_DEVICE_MOTOR* motor_driver,uint16_t compare){
 	if(compare < motor_driver->compare_range[0]
 		|| compare > motor_driver->compare_range[1]){
-			debug_uart_send_2(0,"Set compare failed\r\n");
+			debug_uart_send_2(1,"Set compare failed\r\n");
 	}
 		
 	if(compare > motor_driver->compare_range[1]){

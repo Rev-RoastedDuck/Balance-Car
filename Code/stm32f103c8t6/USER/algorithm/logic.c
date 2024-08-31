@@ -7,12 +7,14 @@
 #include "logic.h"
 
 // 直立环  
-// 		震荡值 160 9.2
-//		稳定值 160 8.5
-// 		取	值	96 5.1
+// 		震荡值 210 7
+// 		取	值	126 4.2
 
 // 速度环
-// 		稳定值 110 0.58
+// 		稳定值 320 1.6
+
+// 转向环
+//		0 0.6
 
 /**
  * @brief   		计算pid位置环
@@ -84,9 +86,10 @@ float logic_calc_pid_speed(PID_Loc_Info *pid,
  * @param[in]   pid  位置式pid
  * @return  		pid计算结果
  */
-float logic_calc_pid_turn(PID_Loc_Info *pid){
+float logic_calc_pid_turn(PID_Loc_Info *pid,float yaw,float gyro_z){
+	pid->current_value = yaw;
 	pid->En_0 = pid->desired_value - pid->current_value;
-	pid->calc_result =  pid->Kp * pid->En_0 + (pid->Td / pid->Tsam) * pid->Kp * (pid->En_0 - pid->En_1);
+	pid->calc_result =  pid->Kp * pid->En_0 + pid->Td * gyro_z;	// 控制变化率为主
 	pid->En_1 = pid->En_0;
 	return pid->calc_result;
 }

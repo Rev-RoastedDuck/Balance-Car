@@ -63,7 +63,7 @@
 
 // <e> USART1 (Universal synchronous asynchronous receiver transmitter)
 // <i> Configuration settings for Driver_USART1 in component ::CMSIS Driver:USART
-#define RTE_USART1                       1
+#define RTE_USART1                       0
 
 //   <o> USART1_TX Pin <0=>Not Used <1=>PA9
 #define RTE_USART1_TX_PORT_ID_DEF       1
@@ -213,10 +213,10 @@
 
 // <e> USART2 (Universal synchronous asynchronous receiver transmitter)
 // <i> Configuration settings for Driver_USART2 in component ::CMSIS Driver:USART
-#define RTE_USART2                      0
+#define RTE_USART2                      1
 
 //   <o> USART2_TX Pin <0=>Not Used <1=>PA2
-#define RTE_USART2_TX_PORT_ID_DEF       0
+#define RTE_USART2_TX_PORT_ID_DEF       1
 #if    (RTE_USART2_TX_PORT_ID_DEF == 0)
 #define RTE_USART2_TX_DEF               0
 #elif  (RTE_USART2_TX_PORT_ID_DEF == 1)
@@ -228,7 +228,7 @@
 #endif
 
 //   <o> USART2_RX Pin <0=>Not Used <1=>PA3
-#define RTE_USART2_RX_PORT_ID_DEF       0
+#define RTE_USART2_RX_PORT_ID_DEF       1
 #if    (RTE_USART2_RX_PORT_ID_DEF == 0)
 #define RTE_USART2_RX_DEF               0
 #elif  (RTE_USART2_RX_PORT_ID_DEF == 1)
@@ -407,10 +407,10 @@
 
 // <e> USART3 (Universal synchronous asynchronous receiver transmitter)
 // <i> Configuration settings for Driver_USART3 in component ::CMSIS Driver:USART
-#define RTE_USART3                      0
+#define RTE_USART3                      1
 
 //   <o> USART3_TX Pin <0=>Not Used <1=>PB10
-#define RTE_USART3_TX_PORT_ID_DEF       0
+#define RTE_USART3_TX_PORT_ID_DEF       1
 #if    (RTE_USART3_TX_PORT_ID_DEF == 0)
 #define RTE_USART3_TX_DEF               0
 #elif  (RTE_USART3_TX_PORT_ID_DEF == 1)
@@ -422,7 +422,7 @@
 #endif
 
 //   <o> USART3_RX Pin <0=>Not Used <1=>PB11
-#define RTE_USART3_RX_PORT_ID_DEF       0
+#define RTE_USART3_RX_PORT_ID_DEF       1
 #if    (RTE_USART3_RX_PORT_ID_DEF == 0)
 #define RTE_USART3_RX_DEF               0
 #elif  (RTE_USART3_RX_PORT_ID_DEF == 1)

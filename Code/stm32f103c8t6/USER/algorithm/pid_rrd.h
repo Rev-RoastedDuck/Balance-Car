@@ -40,39 +40,39 @@ typedef struct{
 /*-----------------------------------结构体------------------------------------*/
 /******************************************************************************/
 typedef struct{
-    float En_0;            // 本次偏差
-    float En_1;            // 上次偏差
-    float En_2;            // 上上次偏差
+    volatile float En_0;            // 本次偏差
+    volatile float En_1;            // 上次偏差
+    volatile float En_2;            // 上上次偏差
 
-    float Kp;              // 比例系数:       P
-    float Ti;              // 积分时间常数:   I
-    float Td;              // 微分时间常数:   D
+    volatile float Kp;              // 比例系数:       P
+    volatile float Ti;              // 积分时间常数:   I
+    volatile float Td;              // 微分时间常数:   D
 
-    float current_value;   // 当前传感器的值
-    float desired_value;   // 设定传感器的值
+    volatile float current_value;   // 当前传感器的值
+    volatile float desired_value;   // 设定传感器的值
 
 
-    float calc_result;     // 增量PID计算本次应该输出的增量值--本次计算的结果
-    float Tsam;            // 采样周期---控制周期，每隔Tsam控制器输出一次PID运算结果
+    volatile float calc_result;     // 增量PID计算本次应该输出的增量值--本次计算的结果
+    volatile float Tsam;            // 采样周期---控制周期，每隔Tsam控制器输出一次PID运算结果
 
     PWM_Data *pwm_data;
 }PID_Inc_Info;
 
 
 typedef struct{
-    float En_0;            // 本次偏差
-    float En_1;            // 上次偏差
-    float SEk ;            // 历史偏差值
+    volatile float En_0;            // 本次偏差
+    volatile float En_1;            // 上次偏差
+    volatile float SEk ;            // 历史偏差值
 
-    float Kp;              // 比例系数:       P
-    float Ti;              // 积分时间常数:   I
-    float Td;              // 微分时间常数:   D
+    volatile float Kp;              // 比例系数:       P
+    volatile float Ti;              // 积分时间常数:   I
+    volatile float Td;              // 微分时间常数:   D
 
-    float current_value;   // 当前传感器的值
-    float desired_value;   // 设定传感器的值
+    volatile float current_value;   // 当前传感器的值
+    volatile float desired_value;   // 设定传感器的值
 
-    float calc_result;     // 增量PID计算本次应该输出的增量值--本次计算的结果
-    float Tsam;            // 采样周期---控制周期，每隔Tsam控制器输出一次PID运算结果
+    volatile float calc_result;     // 增量PID计算本次应该输出的增量值--本次计算的结果
+    volatile float Tsam;            // 采样周期---控制周期，每隔Tsam控制器输出一次PID运算结果
 
     PWM_Data *pwm_data;
 }PID_Loc_Info;

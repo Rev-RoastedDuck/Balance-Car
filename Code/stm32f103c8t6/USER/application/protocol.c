@@ -27,7 +27,7 @@ static const uint8_t g_SIMPLY_PACKET_TAIL[g_SIMPLY_PACKET_TAIL_LEN]={0xEA,0xEB};
 /*----------------------------------全局变量-----------------------------------*/
 /******************************************************************************/
 static Receive_Data  g_RX_DATA;
-#if Only_Receive_Data
+#if !Only_Receive_Data
 static Transmit_Data g_TX_DATA;
 #endif
 
@@ -60,8 +60,9 @@ void transmit_interface(const uint8_t *buff, uint8_t len,Server_Type server)
 //    printf("\r\n");
 
     // eg.
-    // bluetooth_send_buffer_rrd(packet,packet_len);
-//     uart_write_buffer(DEBUG_UART_INDEX, packet, packet_len);
+    // BLUETOOTH_DEVICE.bluetooth_send_buff(packet,packet_len);
+    // debug_uart_send_buff(packet, packet_len);
+	
 }
 
 
@@ -75,49 +76,96 @@ void transmit_interface(const uint8_t *buff, uint8_t len,Server_Type server)
  */
 void set_config_params_handler(const Receive_Data* data)
 {
-	g_BALANCE_CAR_INFO.pid_control.open_loop = data->config_params.need_open_loop_control? TRUE :
-																																													FALSE;
+
 	
 	// 清除误差
-	pic_loc_clear_error(&g_BALANCE_CAR_INFO.pid_data.balance_pid);
-	pic_loc_clear_error(&g_BALANCE_CAR_INFO.pid_data.speed_pid);
-	pic_loc_clear_error(&g_BALANCE_CAR_INFO.pid_data.turn_pid);
+//	pic_loc_clear_error(&g_BALANCE_CAR_INFO.pid_data.balance_pid);	// 清除误差
+//	pic_loc_clear_error(&g_BALANCE_CAR_INFO.pid_data.speed_pid);
+//	pic_loc_clear_error(&g_BALANCE_CAR_INFO.pid_data.turn_pid);
 	
-	g_BALANCE_CAR_INFO.pid_data.balance_pid.Kp = data->config_params.balance_pid[0];	// 直立环 P D
-	g_BALANCE_CAR_INFO.pid_data.balance_pid.Td = data->config_params.balance_pid[1];	
-	
-	g_BALANCE_CAR_INFO.pid_data.speed_pid.Kp = data->config_params.speed_pid[0];	// 速度环 P I
-	g_BALANCE_CAR_INFO.pid_data.speed_pid.Ti = data->config_params.speed_pid[1];
-	
-	g_BALANCE_CAR_INFO.pid_data.turn_pid.Kp = data->config_params.turn_pid[0]; 	// 转向环 P D 
-	g_BALANCE_CAR_INFO.pid_data.turn_pid.Td = data->config_params.turn_pid[1];
+//	g_BALANCE_CAR_INFO.pid_data.balance_pid.Kp = data->config_params.balance_pid[0];	// 直立环 P D
+//	g_BALANCE_CAR_INFO.pid_data.balance_pid.Td = data->config_params.balance_pid[1];	
+//	
+//	g_BALANCE_CAR_INFO.pid_data.speed_pid.Kp = data->config_params.speed_pid[0];	// 速度环 P I
+//	g_BALANCE_CAR_INFO.pid_data.speed_pid.Ti = data->config_params.speed_pid[1];
+//	
+//	g_BALANCE_CAR_INFO.pid_data.turn_pid.Kp = data->config_params.turn_pid[0]; 	// 转向环 P D 
+//	g_BALANCE_CAR_INFO.pid_data.turn_pid.Td = data->config_params.turn_pid[1];
 	
 	g_BALANCE_CAR_INFO.pid_data.balance_pid.desired_value = data->config_params.desired_pitch_angle;	// 机械中值
 	
-	g_BALANCE_CAR_INFO.encoder_date.encoder_left_filter.k = data->config_params.encoder_l_filter[0];	// 左编码器滤波器参数 一阶滤波 K
-	g_BALANCE_CAR_INFO.encoder_date.encoder_right_filter.k = data->config_params.encoder_r_filter[0];	// 右编码器滤波器参数 一阶滤波 K
+//	g_BALANCE_CAR_INFO.encoder_date.encoder_left_filter.k = data->config_params.encoder_l_filter[0];	// 左编码器滤波器参数 一阶滤波 K
+//	g_BALANCE_CAR_INFO.encoder_date.encoder_right_filter.k = data->config_params.encoder_r_filter[0];	// 右编码器滤波器参数 一阶滤波 K
 
-	g_BALANCE_CAR_INFO.function_option.need_dmp_reset = data->config_params.function_options[0];
+//	g_BALANCE_CAR_INFO.function_option.need_dmp_reset = data->config_params.function_options[0];			// 功能选项
+	
+	if(data->config_params.function_options[0]){
+		switch (data->config_params.function_options[0]){
+				case 1:
+					pic_loc_clear_error(&g_BALANCE_CAR_INFO.pid_data.balance_pid);
+					g_BALANCE_CAR_INFO.pid_data.balance_pid.Kp = data->config_params.pid_info[0];	// 直立环 P D
+					g_BALANCE_CAR_INFO.pid_data.balance_pid.Td = data->config_params.pid_info[1];
+				break;
+				case 2:
+					pic_loc_clear_error(&g_BALANCE_CAR_INFO.pid_data.speed_pid);
+					g_BALANCE_CAR_INFO.pid_data.speed_pid.Kp = data->config_params.pid_info[0];	// 速度环 P I
+					g_BALANCE_CAR_INFO.pid_data.speed_pid.Ti = data->config_params.pid_info[1];
+				break;
+				case 3:
+					pic_loc_clear_error(&g_BALANCE_CAR_INFO.pid_data.turn_pid);
+					g_BALANCE_CAR_INFO.pid_data.turn_pid.Kp = data->config_params.pid_info[0]; 	// 转向环 P D 
+					g_BALANCE_CAR_INFO.pid_data.turn_pid.Td = data->config_params.pid_info[1];
+				break;
+				default:
+				break;
+		}
+	}
+
 
 	if(g_BALANCE_CAR_INFO.function_option.need_oled_show != data->config_params.function_options[1]){
 		g_BALANCE_CAR_INFO.function_option.need_oled_clear = TRUE;
 		g_BALANCE_CAR_INFO.function_option.need_oled_show = data->config_params.function_options[1];
 	}
 
+	g_BALANCE_CAR_INFO.function_option.need_send_status_info = data->config_params.function_options[2];
 	
+		g_BALANCE_CAR_INFO.pid_control.open_loop = data->config_params.function_options[3]? TRUE :
+																																													FALSE;
+		
+																																																		// 运动控制
+//	g_BALANCE_CAR_INFO.pid_data.turn_pid.desired_value = data->movement_params.turn_angle;	// 转向角度
+//	// 增量式pid时，用期望速度
+//	if(g_BALANCE_CAR_INFO.pid_control.open_loop){
+////		g_BALANCE_CAR_INFO.pid_open_loop_data.motor_left_pwm_reload_value = (int16_t)data->movement_params.move_speed[0];
+////		g_BALANCE_CAR_INFO.pid_open_loop_data.motor_right_pwm_reload_value = (int16_t)data->movement_params.move_speed[1];
+//	}
+//	else{
+//		// speed_pid(增量式pid) 目标速度 
+//		// g_BALANCE_CAR_INFO.pid_data.speed_pid.desired_value = data->movement_params.move_speed[0];
+//		
+//		// speed_pid(位置式pid) 目标移动距离
+//		g_BALANCE_CAR_INFO.pid_data.speed_pid.desired_value = (uint16_t)data->movement_params.move_speed[1];
+//	}
+//		debug_uart_send_2(0,"==\r\n");
+//		for(uint8_t index = 0;index < 12;index++){
+//			debug_uart_send_2(0,"%x ",g_RX_DATA.rx_data_buff[index]);
+//		}
+//		debug_uart_send_2(0,"=\r\n");
 	
-	debug_uart_send_2(1,"P: %0.2f D:%0.2f T: %0.2f \r\n",g_BALANCE_CAR_INFO.pid_data.balance_pid.Kp,
-																												g_BALANCE_CAR_INFO.pid_data.balance_pid.Td,
-																												g_BALANCE_CAR_INFO.pid_data.balance_pid.Tsam);
-	
-	debug_uart_send_2(1,"P: %0.2f D: %0.2f T: %0.2f \r\n",g_BALANCE_CAR_INFO.pid_data.speed_pid.Kp,
-																												g_BALANCE_CAR_INFO.pid_data.speed_pid.Td,
-																												g_BALANCE_CAR_INFO.pid_data.speed_pid.Tsam);
+//	debug_uart_send_2(0,"P: %0.2f D:%0.2f T: %0.2f \r\n",g_BALANCE_CAR_INFO.pid_data.balance_pid.Kp,
+//																												g_BALANCE_CAR_INFO.pid_data.balance_pid.Td,
+//																												g_BALANCE_CAR_INFO.pid_data.balance_pid.Tsam);
+//	
+//	debug_uart_send_2(0,"P: %0.2f I: %0.2f T: %0.2f \r\n",g_BALANCE_CAR_INFO.pid_data.speed_pid.Kp,
+//																												g_BALANCE_CAR_INFO.pid_data.speed_pid.Ti,
+//																												g_BALANCE_CAR_INFO.pid_data.speed_pid.Tsam);
 
-	debug_uart_send_2(1,"P: %0.2f D: %0.2f T: %0.2f \r\n",g_BALANCE_CAR_INFO.pid_data.turn_pid.Kp,
-																												g_BALANCE_CAR_INFO.pid_data.turn_pid.Td,
-																												g_BALANCE_CAR_INFO.pid_data.turn_pid.Tsam);
-	
+//	debug_uart_send_2(0,"P: %0.2f D: %0.2f T: %0.2f \r\n",g_BALANCE_CAR_INFO.pid_data.turn_pid.Kp,
+//																												g_BALANCE_CAR_INFO.pid_data.turn_pid.Td,
+//																												g_BALANCE_CAR_INFO.pid_data.turn_pid.Tsam);
+//	
+//	debug_uart_send_2(0,"need_dmp_reset: %d  need_oled_show: %d need_send_status_info: %d \r\n",data->config_params.function_options[0],
+//																																	data->config_params.function_options[1],data->config_params.function_options[2]);
 }
 
 
@@ -159,6 +207,12 @@ void parse_handle_params_handle(const Receive_Data* data)
 
 }
 
+
+//void send_balance_data_handke(Transmit_Data* data){
+//}
+
+
+
 /**
  * @brief  判断是不是服务枚举类中的其中一个
  * @param  数据包
@@ -170,6 +224,7 @@ boolean check_packet_server_type(uint8_t data)
         case set_config_params:
         case set_movement_params:
 				case parse_handle_params:
+				case send_balance_data:
             return TRUE;
         default:
             return FALSE;
@@ -447,10 +502,12 @@ void parse_packet_simple(uint8_t* data,uint8_t start_index,uint8_t end_index){
 		
 		// 5.转载数据
 		uint8_t pack_lenth = end_index - start_index - 5;
+		debug_uart_send_2(0,"=\r\n");
 		for(uint8_t index = 0;index < pack_lenth;index++){
 			g_RX_DATA.rx_data_buff[index] = data[start_index + 3 + index];
-			debug_uart_send_2(1,"%x ",g_RX_DATA.rx_data_buff[index]);
+			debug_uart_send_2(0,"%x ",g_RX_DATA.rx_data_buff[index]);
 		}
+		debug_uart_send_2(0,"=\r\n");
 		
 		// 6.执行服务
 		Server_Type server_simple_packet = (Server_Type)data[start_index + 2];

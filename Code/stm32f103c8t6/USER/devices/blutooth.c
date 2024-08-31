@@ -34,7 +34,7 @@ extern ARM_DRIVER_USART  USART_Driver_(USART_DRV_NUM);
 /******************************************************************************/
 /*----------------------------------全局变量----------------------------------*/
 /******************************************************************************/
-#define FIFO_SIZE																128
+#define FIFO_SIZE																256
 static  uint8_t g_FIFO_GET_DATA[FIFO_SIZE];
 
 
@@ -47,8 +47,8 @@ static  uint8_t g_FIFO_GET_DATA[FIFO_SIZE];
  * @param				byte  需要发送的字节 
  */
 static inline void bluetooth_send_byte(uint8_t byte){
-	USART_SendData(USART2,byte);
-	while (USART_GetFlagStatus(USART2, USART_FLAG_TXE) == RESET) {
+	USART_SendData(USART3,byte);
+	while (USART_GetFlagStatus(USART3, USART_FLAG_TXE) == RESET) {
 	}
 }
 
@@ -100,7 +100,7 @@ static void blutooth_send(const char *fmt,...) {
 	free(buffer);
 }
 
-void bluetooth_callback(uint32_t event){
+void bluetooth_callback(uint32_t event){	
 	if(event & ARM_USART_EVENT_RX_TIMEOUT){
 		
 		uint32_t length = ptrUSART->GetRxCount();	// 获取缓存区长度
@@ -114,7 +114,7 @@ void bluetooth_callback(uint32_t event){
 		
 		/** \addtogroup 清空缓存区
 		 *  \{ */
-		if(length >= FIFO_SIZE - 1){
+		if(event & ARM_USART_EVENT_RECEIVE_COMPLETE){
 			ptrUSART->Receive(g_FIFO_GET_DATA, FIFO_SIZE);
 		}
 		/** \} */
@@ -151,14 +151,14 @@ void bluetooth_callback(uint32_t event){
 			
 		/*-------------------------------简单数据包解析-------------------------------*/
 		// 1.找数据包尾
-		debug_uart_send_2(0,"length %d \r\n",length);
-		for(uint8_t index = 0;index < length;index++){
-			debug_uart_send_2(0,"%x ",g_FIFO_GET_DATA[index]);
-		}
-		debug_uart_send_2(0,"\r\n");
+//		debug_uart_send_2(0,"length %d \r\n",length);
+//		for(uint8_t index = 0;index < length;index++){
+//			debug_uart_send_2(0,"%x ",g_FIFO_GET_DATA[index]);
+//		}
+//		debug_uart_send_2(0,"\r\n");
 		
 		
-		if(length > 4
+		if(length > 16
 			&& g_FIFO_GET_DATA[length - 1] == 0xEB
 			&& g_FIFO_GET_DATA[length - 2] == 0xEA){
 				ptrUSART->Control(ARM_USART_ABORT_RECEIVE, 1);
@@ -176,8 +176,16 @@ void bluetooth_callback(uint32_t event){
 					index --;
 				}
 				
-				// 3.解析数据
+				// 3.长度限制
+				if(length - index < 16){
+					ptrUSART->Receive(g_FIFO_GET_DATA, FIFO_SIZE);
+					return;
+				}
+				
+				// 4.解析数据
 				if(find_pack_header){
+//					debug_uart_send_2(0,"index: %d \r\n",index);
+//					debug_uart_send_2(0,"length: %d \r\n",length);
 					parse_packet_simple(g_FIFO_GET_DATA,index,length);
 				}
 				ptrUSART->Receive(g_FIFO_GET_DATA, FIFO_SIZE);
@@ -220,13 +228,24 @@ static int8_t bluetooth_init(void) {
 	return (0);
 }
 
+/**
+ * @brief  			发送buff
+ * @param				vector  数据容器
+ * @param				len 		数据长度
+ */
+void bluetooth_send_buff(uint8_t *vector,uint16_t len){
+	for(uint16_t index = 0;index < len;index++){
+		bluetooth_send_byte(vector[index]);
+	}
+}
 
 /******************************************************************************/
 /*-------------------------------------接口-----------------------------------*/
 /******************************************************************************/
 RRD_DEVICE_BLUETOOTH BLUETOOTH_DEVICE = {
 	.init = bluetooth_init,
-	.send = blutooth_send
+	.send = blutooth_send,
+	.send_buff = bluetooth_send_buff
 };
 
 

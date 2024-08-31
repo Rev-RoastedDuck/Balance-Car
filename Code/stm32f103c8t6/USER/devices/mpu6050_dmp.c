@@ -35,20 +35,16 @@ void mpu6050_dmp_test(void){
   {		
 		delay_ms_soft(2);
 		mpu_dmp_get_data(&pitch,&roll,&yaw);
-//		printf("欧拉角： %8.2f%8.2f%8.2f    ",pitch,roll,yaw);
 		
 		MPU6050_DEVICE.mpu6050_get_gyro(Gyro);
-////		mpu_get_gyro_reg(Gyro,NULL);
 		Gyro_F[0] = MPU6050_DEVICE.mpu6050_gyro_transition(Gyro[0]);
 		Gyro_F[1] = MPU6050_DEVICE.mpu6050_gyro_transition(Gyro[1]);
 		Gyro_F[2] = MPU6050_DEVICE.mpu6050_gyro_transition(Gyro[2]);
-//		printf("陀螺仪： %8.2f%8.2f%8.2f    \r\n",    Gyro_F[0], Gyro_F[1], Gyro_F[2]);
 
 		MPU6050_DEVICE.mpu6050_get_acc(Accel);
 		Accel_F[0] = MPU6050_DEVICE.mpu6050_acc_transition(Accel[0]);
 		Accel_F[1] = MPU6050_DEVICE.mpu6050_acc_transition(Accel[1]);
 		Accel_F[2] = MPU6050_DEVICE.mpu6050_acc_transition(Accel[2]);
-//		printf("加速度： %8.2f%8.2f%8.2f    ",Accel_F[0],Accel_F[1],Accel_F[2]);
 		
 		printf(" %8.2f,%8.2f,%8.2f    ,%8.2f,%8.2f,%8.2f    ,%8.2f,%8.2f,%8.2f \r\n",pitch,roll,yaw,Gyro_F[0], Gyro_F[1], Gyro_F[2],Accel_F[0],Accel_F[1],Accel_F[2]);
 	}
