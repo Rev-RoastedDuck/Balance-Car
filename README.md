@@ -11,7 +11,13 @@
 </div>
 
 # 演示
-![Demo](./Demo/Balabce_Car.gif)
+<img src="./Demo/Balabce_Car.gif" width="500"/>
+
+# 板子
+<img src="./Demo/降压板.png" alt="1" width="500"/>
+<img src="./Demo/信号控制板.png" alt="2" width="500"/>
+<img src="./Demo/电源接口板.png" alt="3" width="500"/>
+<img src="./Demo/循迹板.png" alt="4" width="500"/>
 
 # 注意
 - 焊接板子的时候，需要注意插座元件的朝向
