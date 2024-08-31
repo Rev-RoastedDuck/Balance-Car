@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>Balance_Car</h1>
+  <h1>Balance-Car</h1>
 </div>
 <br/>
 <div align="center">
