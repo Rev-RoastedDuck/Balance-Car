@@ -1,6 +1,5 @@
 <div align="center">
   <h1>Balance_Car</h1>
-  <a href="./Demo/Balance_Car.mp4">video-demo</a>
 </div>
 <br/>
 <div align="center">
@@ -10,6 +9,8 @@
   <img src="https://img.shields.io/badge/Health-99%25-green?logoColor=63%2C%20185%2C%2017&labelColor=63%2C%20185%2C%2017&color=63%2C%20185%2C%2017">
 </div>
 
+## Demo
+![Demo](./Demo/Balabce_Car.gif)
 
 ## 注意
 - 焊接板子的时候，需要注意插座元件的朝向
