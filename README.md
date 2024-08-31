@@ -1,5 +1,5 @@
 <div align="center">
-   <img src="./Demo/icon.gif" height="150">
+   <img src="./Demo/icon.png" height="150">
   <h1>Balance-Car</h1>
 </div>
 <br/>
