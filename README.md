@@ -14,9 +14,9 @@
 <img src="./Demo/Balabce_Car.gif" width="500"/>
 
 # 板子
-<img src="./Demo/降压板.png" alt="1" width="500"/>
-<img src="./Demo/信号控制板.png" alt="2" width="500"/>
-<img src="./Demo/电源接口板.png" alt="3" width="500"/>
+<img src="./Demo/信号控制板.png" alt="1" width="500"/>
+<img src="./Demo/电源接口板.png" alt="2" width="500"/>
+<img src="./Demo/降压板.png" alt="3" width="400"/>
 <img src="./Demo/循迹板.png" alt="4" width="500"/>
 
 # 注意
